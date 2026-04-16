@@ -44,13 +44,15 @@ Dokumentation der wichtigsten Design- und Technologieentscheidungen mit Begründ
 
 ---
 
-## 004 — Rechte Strg-Taste als Standard-Hotkey (2026-04-16)
+## 004 — F9 als Standard-Hotkey (2026-04-16)
 
 **Kontext:** Der Hotkey muss ergonomisch, nicht-invasiv und in möglichst wenigen Anwendungen belegt sein.
 
-**Entscheidung:** Rechte Strg-Taste als Standard. Konfigurierbar via `DICTUM_HOTKEY_RECORD` in `.env`.
+**Entscheidung:** `F9` als Standard. Konfigurierbar via `DICTUM_HOTKEY_RECORD` in `.env`.
 
-**Begründung:** Die rechte Strg-Taste wird in kaum einer Anwendung eigenständig verwendet. Einzeltaste ist ergonomisch besser als Drei-Tasten-Kombination. Konfigurierbarkeit deckt Sonderfälle ab.
+**Begründung:** Funktionstasten werden von wenigen Anwendungen belegt. `F9` ist eine Einzeltaste — ergonomisch besser als Drei-Tasten-Kombination. Die `keyboard`-Library erkennt Funktionstasten zuverlässig unter Windows.
+
+**Verworfene Alternative:** `right ctrl` — die `keyboard`-Library konnte Press/Release-Events für Modifier-Tasten (Ctrl, Shift, Alt) unter Windows nicht zuverlässig erkennen. Trotz korrekter Scan-Code-Auflösung (57373) wurden Events nicht konsistent ausgelöst.
 
 ---
 

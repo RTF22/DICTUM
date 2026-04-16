@@ -2,6 +2,15 @@
 
 Alle wesentlichen Änderungen an DICTUM werden in dieser Datei dokumentiert.
 
+## [0.8.0] — 2026-04-16
+
+### Geändert
+- **Standard-Hotkey auf `F9`** — "right ctrl" funktionierte unter Windows nicht zuverlässig
+- **Hotkey-Logik vereinfacht** — komplexen `keyboard.hook()`-Workaround entfernt, zurück auf einfaches `on_press_key`/`on_release_key`
+
+### Behoben
+- **Whisper-Modell nicht mehr im Release-ZIP** — wird wie vorgesehen beim ersten Start heruntergeladen (ZIP: 110 MB statt 536 MB)
+
 ## [0.6.0] — 2026-04-16
 
 ### Behoben
@@ -30,12 +39,9 @@ Alle wesentlichen Änderungen an DICTUM werden in dieser Datei dokumentiert.
 
 ## [0.3.0] — 2026-04-16
 
-### Geändert
-- **Standard-Hotkey** für Push-to-Talk auf `Rechte Strg-Taste` geändert
-
 ### Hinzugefügt
 - **Konfigurierbare Hotkeys** via `.env`-Variablen (`DICTUM_HOTKEY_RECORD`, `DICTUM_HOTKEY_MODE_A/B/C`)
-- Unterstützung für Einzeltasten (`right ctrl`, `f9`) und Kombinationen (`ctrl+shift+space`)
+- Unterstützung für Einzeltasten (`f9`, `pause`, `scroll lock`) und Kombinationen (`ctrl+shift+space`)
 - Automatische Erkennung ob Einzeltaste oder Kombination
 
 ## [0.2.0] — 2026-04-15
