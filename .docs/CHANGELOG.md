@@ -2,6 +2,19 @@
 
 Alle wesentlichen Änderungen an DICTUM werden in dieser Datei dokumentiert.
 
+## [0.6.0] — 2026-04-16
+
+### Behoben
+- **App beendet sich jetzt korrekt** über Tray → Beenden (Prozess lief zuvor im Hintergrund weiter)
+- **VAD-Modell** (`silero_vad_v6.onnx`) wird in der .exe mitgeliefert — behebt ONNXRuntimeError beim Transkribieren
+
+### Hinzugefügt
+- **Logfile** (`dictum.log`) mit Rotation (5 MB, 3 Backups) — parallel zur Konsolenausgabe
+- **Konfigurierbares Log-Level** via `DICTUM_LOG_LEVEL` in `.env` (DEBUG, INFO, WARNING, ERROR)
+- **Detaillierte Pipeline-Logs:** Hotkey-Events, Audiodauer, Rohtext, Ergebnistext
+- **Startup-Banner** zeigt beim Start die aktive Konfiguration (Hotkey, Modus, API-Key-Status, RDP)
+- **Info-Dialog** im Tray-Menü mit Versionsnummer und Link zum GitHub-Repository
+
 ## [0.5.0] — 2026-04-16
 
 ### Hinzugefügt

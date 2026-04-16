@@ -37,6 +37,10 @@ Die Pipeline (Schritte 2–5) läuft in einem separaten Thread, damit der Hotkey
 - Abstrakte Basisklasse `STTEngine` mit `transcribe(audio) -> str`
 - `WhisperSTT`: CTranslate2-Backend, Modell wird beim Init vorgeladen
 - `download_root` zeigt auf portablen `models/`-Ordner
+- **VAD (Voice Activity Detection):** faster-whisper nutzt intern Silero VAD (`silero_vad_v6.onnx`), ein kompaktes ONNX-Neuronales-Netz, um Sprachsegmente im Audio zu erkennen. Dies dient zwei Zwecken:
+  1. **Stille überspringen:** Pausen und Hintergrundgeräusche werden vor der Transkription herausgefiltert, was die Genauigkeit und Geschwindigkeit deutlich verbessert.
+  2. **Segmentierung:** Lange Aufnahmen werden in sinnvolle Abschnitte zerlegt, die Whisper einzeln transkribiert.
+  Die VAD-Datei wird im PyInstaller-Build explizit mitgebundelt (`dictum.spec` → `datas`).
 
 ### processing/base.py + clean.py / business.py / rage.py
 - Abstrakte Basisklasse `TextProcessor` mit `process(text) -> str`
@@ -52,7 +56,7 @@ Die Pipeline (Schritte 2–5) läuft in einem separaten Thread, damit der Hotkey
 ### ui/tray.py
 - pystray mit Pillow-generiertem Mikrofon-Icon
 - Farbcodierung: Grün (Clean), Blau (Business), Rot (Rage)
-- Menü: Moduswechsel + Beenden
+- Menü: Moduswechsel, Info (About-Dialog mit Repo-Link), Beenden
 
 ### ui/overlay.py
 - tkinter Toplevel in eigenem Thread mit eigener Mainloop
@@ -64,6 +68,12 @@ Die Pipeline (Schritte 2–5) läuft in einem separaten Thread, damit der Hotkey
 - Lädt `.env` relativ zum Anwendungsverzeichnis
 - `APP_DIR` funktioniert als Script und als frozen .exe (PyInstaller)
 - RDP-Modus passt Delays automatisch an
+
+### Logging (in main.py konfiguriert)
+- Dual-Output: Console (`stdout`) + Logfile (`dictum.log`)
+- `RotatingFileHandler`: max 5 MB pro Datei, 3 Backup-Dateien
+- Level konfigurierbar via `DICTUM_LOG_LEVEL` in `.env`
+- Pipeline-Log zeigt den vollständigen Ablauf: Hotkey → Audiodauer → Rohtext → Ergebnis → Einfügung
 
 ## Erweiterbarkeit
 

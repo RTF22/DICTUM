@@ -14,6 +14,7 @@ Lokale Sprachdiktion-App für Windows 11 mit globalem Hotkey. Sprache aufnehmen,
 - **Lokale Verarbeitung** — Speech-to-Text läuft vollständig offline (faster-whisper)
 - **Konfigurierbare Hotkeys** via `.env`
 - **RDP-Modus** für Remote-Desktop-Sessions
+- **Logfile** mit konfigurierbarem Log-Level
 - **Portable .exe** — kein Python nötig
 
 ## Voraussetzungen
@@ -68,6 +69,10 @@ DICTUM_HOTKEY_MODE_A=ctrl+shift+1
 DICTUM_HOTKEY_MODE_B=ctrl+shift+2
 DICTUM_HOTKEY_MODE_C=ctrl+shift+3
 
+# Logging (DEBUG, INFO, WARNING, ERROR)
+DICTUM_LOG_LEVEL=INFO
+DICTUM_LOG_FILE=dictum.log
+
 # RDP-Modus (längere Clipboard-Delays)
 DICTUM_RDP_MODE=true
 ```
@@ -88,7 +93,7 @@ Ohne API-Key fallen Modus B und C automatisch auf Modus A (Clean) zurück.
 2. Rechte Strg-Taste gedrückt halten und sprechen
 3. Loslassen — der Text wird transkribiert, transformiert und automatisch eingefügt
 
-**Beenden:** Rechtsklick auf das Tray-Icon → **Beenden**
+**Tray-Menü:** Rechtsklick auf das Tray-Icon → Moduswechsel, **Info** (About + Repo-Link), **Beenden**
 
 ## Fehlerbehebung
 

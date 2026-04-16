@@ -74,3 +74,18 @@ Dokumentation der wichtigsten Design- und Technologieentscheidungen mit Begründ
 **Entscheidung:** `DICTUM_RDP_MODE=true` setzt automatisch längere Delays (200ms/400ms). Delays sind auch einzeln konfigurierbar.
 
 **Tradeoff:** Höhere Latenz bei der Texteinfügung in RDP-Sessions (~400ms statt ~150ms).
+
+---
+
+## 007 — VAD-Filter bei Transkription (2026-04-16)
+
+**Kontext:** Aufnahmen enthalten oft Stille am Anfang/Ende (Verzögerung beim Drücken/Loslassen des Hotkeys) und Hintergrundgeräusche. Ohne Vorfilterung versucht Whisper, auch diese Abschnitte zu transkribieren — das erzeugt Halluzinationen (erfundener Text bei Stille) und erhöht die Latenz.
+
+**Entscheidung:** `vad_filter=True` in der Whisper-Transkription aktivieren. faster-whisper nutzt dafür Silero VAD v6, ein ~2 MB großes ONNX-Modell, das Sprache von Nicht-Sprache unterscheidet.
+
+**Funktion:** Silero VAD analysiert das Audio in kurzen Frames (~30ms) und klassifiziert jeden als Sprache/Stille. Nur als Sprache erkannte Segmente werden an Whisper übergeben. Dies:
+- Reduziert die zu transkribierende Audiomenge (schnellere Verarbeitung)
+- Verhindert Halluzinationen in stillen Abschnitten
+- Ermöglicht saubere Segmentierung bei längeren Aufnahmen
+
+**PyInstaller-Besonderheit:** Die Datei `silero_vad_v6.onnx` liegt im `faster_whisper/assets/`-Verzeichnis und wird von PyInstaller nicht automatisch erkannt. Sie muss explizit in `dictum.spec` als `datas`-Eintrag aufgenommen werden.
