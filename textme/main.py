@@ -178,23 +178,43 @@ class TextMEApp:
     def _register_hotkeys(self) -> None:
         record_key = self._config.hotkey_record
 
-        # Push-to-Talk: Erkennung ob Einzeltaste oder Kombination
-        # Einzeltaste (z.B. "right ctrl", "f9"): on_press/on_release direkt
-        # Kombination (z.B. "ctrl+shift+space"): letzte Taste als Trigger, Rest als Modifier
+        # Push-to-Talk: Robuste Erkennung über globalen Hook
+        # on_press_key/on_release_key hat Probleme mit Sondertasten wie "right ctrl"
+        # unter Windows, daher verwenden wir keyboard.hook() mit Name-Matching.
         if "+" in record_key:
+            # Kombination (z.B. "ctrl+shift+space"): letzte Taste als Trigger, Rest als Modifier
             parts = [p.strip() for p in record_key.split("+")]
             trigger_key = parts[-1]
             modifier_keys = parts[:-1]
+            trigger_name = keyboard.normalize_name(trigger_key)
 
-            def _check_and_start(e):
-                if all(keyboard.is_pressed(mod) for mod in modifier_keys):
-                    self._on_record_start()
+            def _combo_hook(event):
+                if keyboard.normalize_name(event.name) == trigger_name:
+                    if event.event_type == keyboard.KEY_DOWN:
+                        if all(keyboard.is_pressed(mod) for mod in modifier_keys):
+                            self._on_record_start()
+                    elif event.event_type == keyboard.KEY_UP:
+                        self._on_record_stop()
 
-            keyboard.on_press_key(trigger_key, _check_and_start, suppress=False)
-            keyboard.on_release_key(trigger_key, lambda e: self._on_record_stop(), suppress=False)
+            keyboard.hook(_combo_hook)
         else:
-            keyboard.on_press_key(record_key, lambda e: self._on_record_start(), suppress=False)
-            keyboard.on_release_key(record_key, lambda e: self._on_record_stop(), suppress=False)
+            # Einzeltaste (z.B. "right ctrl", "f9", "scroll lock")
+            target_name = keyboard.normalize_name(record_key)
+            target_scan_codes = keyboard.key_to_scan_codes(record_key)
+            logger.debug("Record-Key '%s' → name='%s', scan_codes=%s",
+                         record_key, target_name, target_scan_codes)
+
+            def _single_key_hook(event):
+                # Matche auf Scan-Code (zuverlässiger) ODER auf normalisierten Namen
+                match = (event.scan_code in target_scan_codes
+                         or keyboard.normalize_name(event.name) == target_name)
+                if match:
+                    if event.event_type == keyboard.KEY_DOWN:
+                        self._on_record_start()
+                    elif event.event_type == keyboard.KEY_UP:
+                        self._on_record_stop()
+
+            keyboard.hook(_single_key_hook)
 
         # Moduswechsel
         keyboard.add_hotkey(self._config.hotkey_mode_a, lambda: self._set_mode("clean"))
