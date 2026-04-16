@@ -4,7 +4,7 @@ Lokale Sprachdiktion-App für Windows 11 mit globalem Hotkey. Sprache aufnehmen,
 
 ## Features
 
-- **Push-to-Talk** per globalem Hotkey (Standard: `Rechte Strg-Taste`)
+- **Push-to-Talk** per globalem Hotkey (Standard: `F9`)
 - **Drei Modi:**
   - **A — Clean:** Saubere Transkription, entfernt Füllwörter (äh, ähm, also, ...), leichte Korrektur
   - **B — Business:** Wandelt Sprache in professionelle Geschäftssprache um (Claude API)
@@ -64,7 +64,7 @@ Alle Einstellungen werden über die `.env`-Datei im Anwendungsverzeichnis gesteu
 ANTHROPIC_API_KEY=sk-ant-dein-key-hier
 
 # Hotkeys — Einzeltaste oder Kombination
-DICTUM_HOTKEY_RECORD=right ctrl
+DICTUM_HOTKEY_RECORD=f9
 DICTUM_HOTKEY_MODE_A=ctrl+shift+1
 DICTUM_HOTKEY_MODE_B=ctrl+shift+2
 DICTUM_HOTKEY_MODE_C=ctrl+shift+3
@@ -83,14 +83,14 @@ Ohne API-Key fallen Modus B und C automatisch auf Modus A (Clean) zurück.
 
 | Tastenkombination | Aktion |
 |---|---|
-| `Rechte Strg` (halten) | Push-to-Talk — sprechen, loslassen zum Verarbeiten |
+| `F9` (halten) | Push-to-Talk — sprechen, loslassen zum Verarbeiten |
 | `Ctrl+Shift+1` | Modus A: Clean Transcription |
 | `Ctrl+Shift+2` | Modus B: Business Mode |
 | `Ctrl+Shift+3` | Modus C: Rage Mode |
 
 **Ablauf:**
 1. Cursor in das Zielfeld setzen (z.B. E-Mail, Chat, Texteditor)
-2. Rechte Strg-Taste gedrückt halten und sprechen
+2. `F9` gedrückt halten und sprechen
 3. Loslassen — der Text wird transkribiert, transformiert und automatisch eingefügt
 
 **Tray-Menü:** Rechtsklick auf das Tray-Icon → Moduswechsel, **Info** (About + Repo-Link), **Beenden**

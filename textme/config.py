@@ -38,7 +38,7 @@ class Config:
 
     # Hotkeys (konfigurierbar via .env — Werte wie von der 'keyboard'-Library erwartet)
     # Einzeltaste oder Kombination, z.B.: "right ctrl", "ctrl+shift+space", "f9"
-    hotkey_record: str = field(default_factory=lambda: os.getenv("DICTUM_HOTKEY_RECORD", "right ctrl"))
+    hotkey_record: str = field(default_factory=lambda: os.getenv("DICTUM_HOTKEY_RECORD", "f9"))
     hotkey_mode_a: str = field(default_factory=lambda: os.getenv("DICTUM_HOTKEY_MODE_A", "ctrl+shift+1"))
     hotkey_mode_b: str = field(default_factory=lambda: os.getenv("DICTUM_HOTKEY_MODE_B", "ctrl+shift+2"))
     hotkey_mode_c: str = field(default_factory=lambda: os.getenv("DICTUM_HOTKEY_MODE_C", "ctrl+shift+3"))
