@@ -12,6 +12,7 @@ import threading
 
 import keyboard
 
+from textme import __version__
 from textme.audio.recorder import AudioRecorder
 from textme.config import Config
 from textme.output.injector import TextInjector
@@ -68,7 +69,7 @@ class TextMEApp:
         self._processing = False
 
         logger.info("=" * 50)
-        logger.info("DICTUM v0.5.0 startet...")
+        logger.info("DICTUM v%s startet...", __version__)
         logger.info("Log-Level: %s | Logfile: %s", self._config.log_level, self._config.log_file)
         logger.info("Hotkey (PTT): %s", self._config.hotkey_record)
         logger.info("Standard-Modus: %s", self._config.default_mode)

@@ -7,9 +7,9 @@ from typing import Callable
 from PIL import Image, ImageDraw, ImageFont
 from pystray import Icon, Menu, MenuItem
 
-logger = logging.getLogger(__name__)
+from textme import __version__
 
-_VERSION = "0.5.0"
+logger = logging.getLogger(__name__)
 _REPO_URL = "https://github.com/RTF22/DICTUM"
 
 _MODE_COLORS = {
@@ -129,7 +129,7 @@ class TrayApp:
 
         result = messagebox.askquestion(
             "DICTUM — Info",
-            f"DICTUM v{_VERSION}\n"
+            f"DICTUM v{__version__}\n"
             f"DICtation with Text Understanding & Modification\n\n"
             f"Lokale Sprachdiktion fuer Windows\n"
             f"mit intelligentem Text-Processing.\n\n"
