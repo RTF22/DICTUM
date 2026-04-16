@@ -1,12 +1,24 @@
 import os
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from dotenv import load_dotenv
 
-# .env aus dem Projektverzeichnis laden
-_project_root = Path(__file__).resolve().parent.parent
-load_dotenv(_project_root / ".env")
+
+def _get_app_dir() -> Path:
+    """Gibt das Anwendungsverzeichnis zurück — funktioniert sowohl als Script als auch als .exe."""
+    if getattr(sys, "frozen", False):
+        # PyInstaller .exe: Verzeichnis der .exe
+        return Path(sys.executable).resolve().parent
+    # Normaler Python-Aufruf: Projektverzeichnis (eine Ebene über textme/)
+    return Path(__file__).resolve().parent.parent
+
+
+APP_DIR = _get_app_dir()
+
+# .env aus dem Anwendungsverzeichnis laden
+load_dotenv(APP_DIR / ".env")
 
 
 @dataclass
@@ -14,6 +26,9 @@ class Config:
     # Whisper
     whisper_model: str = "small"
     whisper_language: str = "de"
+    whisper_model_dir: str = field(default_factory=lambda: os.getenv(
+        "DICTUM_MODEL_DIR", str(APP_DIR / "models")
+    ))
 
     # Audio
     sample_rate: int = 16000

@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 
 import numpy as np
 from faster_whisper import WhisperModel
@@ -14,11 +15,16 @@ class WhisperSTT(STTEngine):
 
     def __init__(self, config: Config):
         self._config = config
-        logger.info("Lade Whisper-Modell '%s'...", config.whisper_model)
+        model_dir = Path(config.whisper_model_dir)
+        model_dir.mkdir(parents=True, exist_ok=True)
+
+        logger.info("Lade Whisper-Modell '%s' (Verzeichnis: %s)...",
+                     config.whisper_model, model_dir)
         self._model = WhisperModel(
             config.whisper_model,
             device="cpu",
             compute_type="int8",
+            download_root=str(model_dir),
         )
         logger.info("Whisper-Modell geladen")
 

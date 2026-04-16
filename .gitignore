@@ -9,4 +9,6 @@ build/
 venv/
 .venv/
 *.log
+*.spec.bak
+models/
 .claude/
