@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions & discussion
+    url: https://github.com/RTF22/VOCIX/discussions
+    about: Use Discussions for general questions, ideas and support — not the issue tracker.

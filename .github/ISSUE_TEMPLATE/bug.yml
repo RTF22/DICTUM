@@ -1,0 +1,70 @@
+name: Bug report
+description: Report a problem with VOCIX
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please fill in as much detail as you can — logs and reproduction steps make fixing this far faster.
+  - type: input
+    id: version
+    attributes:
+      label: VOCIX version
+      description: Visible in the tray via "About" or in the release filename.
+      placeholder: "1.1.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Windows 11
+        - Windows 10
+        - Other (please specify below)
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: What exactly did you do before the bug appeared?
+      placeholder: |
+        1. Launch VOCIX.exe
+        2. Press F9 and speak "…"
+        3. Release F9
+        4. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log excerpt (vocix.log)
+      description: "Paste the last ~50 lines of `vocix.log` (next to VOCIX.exe). Redact anything sensitive."
+      render: text
+  - type: input
+    id: mode
+    attributes:
+      label: Mode in use
+      placeholder: "Clean / Business / Rage"
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues and discussions for the same problem.
+          required: true
+        - label: I am on the latest release.
+          required: true

@@ -2,6 +2,11 @@
 
 # VOCIX — Voice Capture & Intelligent eXpression
 
+![Release](https://img.shields.io/github/v/release/RTF22/VOCIX)
+![Downloads](https://img.shields.io/github/downloads/RTF22/VOCIX/total)
+![License](https://img.shields.io/github/license/RTF22/VOCIX)
+![Platform](https://img.shields.io/badge/platform-Windows-blue)
+
 Lokale Sprachdiktion-App für Windows 11 mit globalem Hotkey. Sprache aufnehmen, transkribieren, intelligent transformieren und systemweit an der Cursorposition einfügen — in jeder Anwendung (Browser, Word, Outlook, IDEs, etc.).
 
 ## Features
