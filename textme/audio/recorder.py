@@ -50,11 +50,17 @@ class AudioRecorder:
         with self._lock:
             if not self._recording:
                 return None
+            # Flag zuerst zurücksetzen, damit der Callback keine neuen Frames
+            # mehr in den Buffer schreibt, auch wenn PortAudio noch nachfeuert.
             self._recording = False
             if self._stream is not None:
-                self._stream.stop()
-                self._stream.close()
-                self._stream = None
+                try:
+                    self._stream.stop()
+                    self._stream.close()
+                except Exception as e:
+                    logger.warning("Fehler beim Stream-Shutdown: %s", e)
+                finally:
+                    self._stream = None
 
         if not self._buffer:
             logger.warning("Leerer Audio-Buffer")
@@ -76,6 +82,11 @@ class AudioRecorder:
         return audio
 
     def _audio_callback(self, indata: np.ndarray, frames: int, time_info, status) -> None:
+        # PortAudio-Callback läuft in einem fremden Thread und kann nach stop()
+        # noch nachfeuern, bevor PortAudio den Callback drainiert. Ohne Guard
+        # würden Daten in den Buffer einer bereits beendeten Session fließen.
+        if not self._recording:
+            return
         if status:
             logger.warning("Audio-Status: %s", status)
         self._buffer.append(indata.copy())
