@@ -2,6 +2,15 @@
 
 Alle wesentlichen Änderungen an DICTUM werden in dieser Datei dokumentiert.
 
+## [0.8.2] — 2026-04-18
+
+### Geändert
+- **Kombo-Hotkeys für Push-to-Talk abgelehnt** — `DICTUM_HOTKEY_RECORD` muss eine Einzeltaste sein. Kombos wie `ctrl+shift+space` waren laut ADR 004 nicht zuverlässig hold-to-record-fähig und werden jetzt beim Start mit einem klaren `ValueError` abgelehnt (Issue #10). Moduswechsel-Hotkeys (`DICTUM_HOTKEY_MODE_A/B/C`) bleiben unverändert und dürfen weiterhin Kombos sein.
+- **`.env`-Laden in Config-Factory verschoben** — `Config.load()` kapselt den `load_dotenv()`-Aufruf. Der reine Import von `dictum.config` hat jetzt keine Nebeneffekte mehr auf `os.environ`, was Tests ohne Subprozess-Tricks erlaubt (Issue #11). Env-Priorität (Prozess-Umgebung schlägt `.env`) ist im README dokumentiert.
+
+### Behoben
+- **Nicht-Text-Clipboards wurden zerstört** — Wenn beim Aufnahmestart ein Bild oder eine Datei in der Zwischenablage lag, überschrieb der Restore-Pfad den Inhalt mit einem leeren String. `TextInjector` prüft jetzt via `IsClipboardFormatAvailable(CF_UNICODETEXT)` und überspringt den Restore, wenn kein Text vorliegt. Eine Warnung wird geloggt, der eingefügte Text bleibt stattdessen in der Zwischenablage stehen (Issue #5). ADR 001 dokumentiert die Grenze.
+
 ## [0.8.1] — 2026-04-18
 
 ### Geändert
