@@ -1,0 +1,49 @@
+{
+  "lang.de": "Deutsch",
+  "lang.en": "English",
+
+  "mode.clean": "A: Clean",
+  "mode.business": "B: Business",
+  "mode.rage": "C: Rage",
+
+  "processor.clean": "Clean",
+  "processor.business": "Business",
+  "processor.rage": "Rage",
+
+  "tray.title": "VOCIX — {mode}",
+  "tray.language": "Sprache / Language",
+  "tray.check_updates": "Nach Updates suchen…",
+  "tray.info": "Info",
+  "tray.quit": "Beenden",
+  "tray.update_available": "🔔 Update {version} verfügbar",
+  "tray.skip_version": "   Diese Version überspringen",
+
+  "toast.update_title": "VOCIX — Update verfügbar",
+  "toast.update_body": "Version {version} ist verfügbar. Klicke im Tray-Menü zum Öffnen.",
+  "toast.checking": "Suche nach Updates…",
+  "toast.up_to_date": "Du bist auf der aktuellsten Version.",
+
+  "about.title": "VOCIX — Info",
+  "about.tagline": "Voice Capture & Intelligent eXpression",
+  "about.description": "Lokale Sprachdiktion für Windows\nmit intelligentem Text-Processing.",
+  "about.repository": "Repository:",
+  "about.open_browser": "Im Browser öffnen?",
+
+  "overlay.loading_model": "Lade Whisper-Modell…",
+  "overlay.ready": "VOCIX bereit",
+  "overlay.mode_switched": "Modus: {name}",
+  "overlay.recording": "Aufnahme…",
+  "overlay.no_speech": "Keine Sprache erkannt",
+  "overlay.transcribing": "Transkribiere…",
+  "overlay.no_text": "Kein Text erkannt",
+  "overlay.processing": "Verarbeite ({name})…",
+  "overlay.empty_result": "Leeres Ergebnis",
+  "overlay.inserted": "Eingefügt",
+  "overlay.error": "Fehler!",
+
+  "error.mic_unavailable": "Mikrofon nicht verfügbar. Bitte prüfe die Audioeinstellungen.",
+  "error.clipboard_nontext": "Zwischenablage enthält Nicht-Text-Inhalt (z.B. Bild oder Datei). Dieser wird durch die Einfügung überschrieben und nicht wiederhergestellt.",
+
+  "prompt.business": "Du bist ein professioneller Textassistent für geschäftliche Kommunikation.\n\nDeine Aufgabe:\n- Wandle den gesprochenen Text in professionelle, formelle Schriftsprache um.\n- Der Text soll für E-Mails, Briefe oder geschäftliche Dokumente geeignet sein.\n- Verbessere Struktur, Grammatik und Tonalität.\n- Entferne Füllwörter und umgangssprachliche Ausdrücke.\n- Behalte die ursprüngliche Bedeutung exakt bei.\n- Antworte NUR mit dem umformulierten Text, ohne Erklärungen oder Anmerkungen.\n- Antworte in derselben Sprache wie der Eingabetext.",
+  "prompt.rage": "Du bist ein Deeskalations-Assistent.\n\nDeine Aufgabe:\n- Du erhältst Text, der möglicherweise aggressiv, unhöflich oder emotional aufgeladen ist.\n- Wandle den Text in eine höfliche, respektvolle und sachliche Formulierung um.\n- Die URSPRÜNGLICHE BEDEUTUNG und alle Sachargumente MÜSSEN vollständig erhalten bleiben.\n- Entferne Beleidigungen, Schimpfwörter und aggressive Formulierungen.\n- Ersetze sie durch sachliche, konstruktive Alternativen.\n- Der Ton soll bestimmt aber höflich sein — nicht unterwürfig.\n- Antworte NUR mit dem umformulierten Text, ohne Erklärungen oder Anmerkungen.\n- Antworte in derselben Sprache wie der Eingabetext."
+}

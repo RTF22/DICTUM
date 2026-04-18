@@ -5,6 +5,7 @@ import numpy as np
 import sounddevice as sd
 
 from vocix.config import Config
+from vocix.i18n import t
 
 logger = logging.getLogger(__name__)
 
@@ -40,9 +41,7 @@ class AudioRecorder:
                 logger.info("Aufnahme gestartet")
             except sd.PortAudioError as e:
                 logger.error("Mikrofon nicht verfügbar: %s", e)
-                raise RuntimeError(
-                    "Mikrofon nicht verfügbar. Bitte prüfe die Audioeinstellungen."
-                ) from e
+                raise RuntimeError(t("error.mic_unavailable")) from e
 
     def stop(self) -> np.ndarray | None:
         """Stoppt die Aufnahme und gibt das Audio als float32 numpy array zurück.

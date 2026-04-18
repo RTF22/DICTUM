@@ -6,6 +6,7 @@ import keyboard
 import pyperclip
 
 from vocix.config import Config
+from vocix.i18n import t
 
 logger = logging.getLogger(__name__)
 
@@ -48,10 +49,7 @@ class TextInjector:
         else:
             original_clipboard = None
             if user32.CountClipboardFormats() > 0:
-                logger.warning(
-                    "Zwischenablage enthält Nicht-Text-Inhalt (z.B. Bild oder Datei). "
-                    "Dieser wird durch die Einfügung überschrieben und nicht wiederhergestellt."
-                )
+                logger.warning(t("error.clipboard_nontext"))
 
         try:
             # Text in Zwischenablage

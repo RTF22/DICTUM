@@ -17,6 +17,7 @@ a = Analysis(
     datas=[
         (".env.example", "."),
         (os.path.join(faster_whisper_path, "assets"), "faster_whisper/assets"),
+        ("vocix/locales", "vocix/locales"),
     ],
     hiddenimports=[
         "faster_whisper",

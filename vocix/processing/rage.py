@@ -1,23 +1,11 @@
 import logging
 
 from vocix.config import Config
+from vocix.i18n import t
 from vocix.processing.base import TextProcessor
 from vocix.processing.clean import CleanProcessor
 
 logger = logging.getLogger(__name__)
-
-_SYSTEM_PROMPT = """\
-Du bist ein Deeskalations-Assistent.
-
-Deine Aufgabe:
-- Du erhältst Text, der möglicherweise aggressiv, unhöflich oder emotional aufgeladen ist.
-- Wandle den Text in eine höfliche, respektvolle und sachliche Formulierung um.
-- Die URSPRÜNGLICHE BEDEUTUNG und alle Sachargumente MÜSSEN vollständig erhalten bleiben.
-- Entferne Beleidigungen, Schimpfwörter und aggressive Formulierungen.
-- Ersetze sie durch sachliche, konstruktive Alternativen.
-- Der Ton soll bestimmt aber höflich sein — nicht unterwürfig.
-- Antworte NUR mit dem umformulierten Text, ohne Erklärungen oder Anmerkungen.
-- Antworte in derselben Sprache wie der Eingabetext."""
 
 
 class RageProcessor(TextProcessor):
@@ -56,7 +44,7 @@ class RageProcessor(TextProcessor):
             response = self._client.messages.create(
                 model=self._config.anthropic_model,
                 max_tokens=1024,
-                system=_SYSTEM_PROMPT,
+                system=t("prompt.rage"),
                 messages=[{"role": "user", "content": text}],
             )
             result = response.content[0].text.strip()

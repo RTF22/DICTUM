@@ -1,22 +1,11 @@
 import logging
 
 from vocix.config import Config
+from vocix.i18n import t
 from vocix.processing.base import TextProcessor
 from vocix.processing.clean import CleanProcessor
 
 logger = logging.getLogger(__name__)
-
-_SYSTEM_PROMPT = """\
-Du bist ein professioneller Textassistent für geschäftliche Kommunikation.
-
-Deine Aufgabe:
-- Wandle den gesprochenen Text in professionelle, formelle Schriftsprache um.
-- Der Text soll für E-Mails, Briefe oder geschäftliche Dokumente geeignet sein.
-- Verbessere Struktur, Grammatik und Tonalität.
-- Entferne Füllwörter und umgangssprachliche Ausdrücke.
-- Behalte die ursprüngliche Bedeutung exakt bei.
-- Antworte NUR mit dem umformulierten Text, ohne Erklärungen oder Anmerkungen.
-- Antworte in derselben Sprache wie der Eingabetext."""
 
 
 class BusinessProcessor(TextProcessor):
@@ -55,7 +44,7 @@ class BusinessProcessor(TextProcessor):
             response = self._client.messages.create(
                 model=self._config.anthropic_model,
                 max_tokens=1024,
-                system=_SYSTEM_PROMPT,
+                system=t("prompt.business"),
                 messages=[{"role": "user", "content": text}],
             )
             result = response.content[0].text.strip()

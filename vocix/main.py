@@ -11,9 +11,10 @@ import threading
 
 import keyboard
 
-from vocix import __version__, updater
+from vocix import __version__, i18n, updater
 from vocix.audio.recorder import AudioRecorder
-from vocix.config import Config, load_state
+from vocix.config import Config, load_state, save_state
+from vocix.i18n import t
 from vocix.output.injector import TextInjector
 from vocix.processing.base import TextProcessor
 from vocix.processing.business import BusinessProcessor
@@ -62,6 +63,7 @@ class VocixApp:
     def __init__(self):
         self._config = Config.load()
         _setup_logging(self._config)
+        i18n.set_language(self._config.language)
 
         self._current_mode = self._config.default_mode
         self._running = True
@@ -81,7 +83,7 @@ class VocixApp:
 
         # Komponenten
         self._overlay = StatusOverlay(self._config)
-        self._overlay.show("Lade Whisper-Modell...", "processing")
+        self._overlay.show(t("overlay.loading_model"), "processing")
 
         self._recorder = AudioRecorder(self._config)
         self._stt = WhisperSTT(self._config)
@@ -99,18 +101,35 @@ class VocixApp:
             current_mode=self._current_mode,
             on_mode_change=self._set_mode,
             on_quit=self._quit,
+            on_language_change=self._set_language,
+            current_language=self._config.language,
         )
 
-        self._overlay.show_temporary("VOCIX bereit", "done")
-        logger.info("VOCIX bereit — Modus: %s", self._current_mode)
+        self._overlay.show_temporary(t("overlay.ready"), "done")
+        logger.info("VOCIX bereit — Modus: %s | Sprache: %s",
+                    self._current_mode, self._config.language)
 
     def _set_mode(self, mode: str) -> None:
         self._current_mode = mode
         self._tray.update_mode(mode)
         proc = self._processors.get(mode)
         name = proc.name if proc else mode
-        self._overlay.show_temporary(f"Modus: {name}", "done")
+        self._overlay.show_temporary(t("overlay.mode_switched", name=name), "done")
         logger.info("Modus: %s", mode)
+
+    def _set_language(self, code: str) -> None:
+        """Tray-Callback: UI + Whisper-STT + Prozessor-Prompts umschalten."""
+        if code == self._config.language:
+            return
+        i18n.set_language(code)
+        self._config.language = code
+        state = load_state()
+        state["language"] = code
+        save_state(state)
+        # Tray-Menü neu aufbauen (Labels jetzt in neuer Sprache)
+        self._tray.update_language(code)
+        self._overlay.show_temporary(t("overlay.ready"), "done")
+        logger.info("Sprache gewechselt: %s", code)
 
     def _on_record_start(self) -> None:
         # Key-Repeat: Windows feuert on_press_key kontinuierlich, solange die
@@ -124,7 +143,7 @@ class VocixApp:
                 return
         try:
             self._recorder.start()
-            self._overlay.show("Aufnahme...", "recording")
+            self._overlay.show(t("overlay.recording"), "recording")
             logger.info(">> Aufnahme gestartet (Hotkey gedrückt)")
         except RuntimeError as e:
             logger.error("Aufnahme fehlgeschlagen: %s", e)
@@ -149,30 +168,30 @@ class VocixApp:
             audio = self._recorder.stop()
             if audio is None:
                 logger.warning("Keine verwertbare Aufnahme (zu kurz oder zu leise)")
-                self._overlay.show_temporary("Keine Sprache erkannt", "error")
+                self._overlay.show_temporary(t("overlay.no_speech"), "error")
                 return
 
             duration = len(audio) / self._config.sample_rate
             logger.info("   Audio: %.1fs aufgenommen", duration)
 
             # STT
-            self._overlay.show("Transkribiere...", "processing")
+            self._overlay.show(t("overlay.transcribing"), "processing")
             raw_text = self._stt.transcribe(audio)
             if not raw_text.strip():
                 logger.warning("STT lieferte leeren Text")
-                self._overlay.show_temporary("Kein Text erkannt", "error")
+                self._overlay.show_temporary(t("overlay.no_text"), "error")
                 return
 
             logger.info("   Rohtext: \"%s\"", raw_text[:100] + ("..." if len(raw_text) > 100 else ""))
 
             # Transformation — Modus-Snapshot vom Aufnahmeende verwenden
             processor = self._processors.get(mode, self._processors["clean"])
-            self._overlay.show(f"Verarbeite ({processor.name})...", "processing")
+            self._overlay.show(t("overlay.processing", name=processor.name), "processing")
             processed_text = processor.process(raw_text)
 
             if not processed_text.strip():
                 logger.warning("Prozessor lieferte leeres Ergebnis")
-                self._overlay.show_temporary("Leeres Ergebnis", "error")
+                self._overlay.show_temporary(t("overlay.empty_result"), "error")
                 return
 
             logger.info("   Ergebnis (%s): \"%s\"", processor.name,
@@ -180,12 +199,12 @@ class VocixApp:
 
             # Einfügen
             self._injector.inject(processed_text)
-            self._overlay.show_temporary("Eingefügt", "done")
+            self._overlay.show_temporary(t("overlay.inserted"), "done")
             logger.info("   Text eingefügt (%d Zeichen)", len(processed_text))
 
         except Exception as e:
             logger.error("Pipeline-Fehler: %s", e, exc_info=True)
-            self._overlay.show_temporary("Fehler!", "error")
+            self._overlay.show_temporary(t("overlay.error"), "error")
         finally:
             with self._state_lock:
                 self._processing = False

@@ -53,12 +53,24 @@ def save_state(state: dict) -> None:
 
 @dataclass
 class Config:
+    # Sprache (UI + Claude-Prompts + Whisper-STT — alles gekoppelt)
+    # Priorität: state.json > VOCIX_LANGUAGE > Default
+    language: str = field(default_factory=lambda: os.getenv("VOCIX_LANGUAGE", "de"))
+
     # Whisper
     whisper_model: str = "small"
-    whisper_language: str = "de"
+    # Normalerweise aus `language` abgeleitet. VOCIX_WHISPER_LANGUAGE erlaubt
+    # einen expliziten Override (selten nötig) — leerer String = koppeln.
+    whisper_language_override: str = field(
+        default_factory=lambda: os.getenv("VOCIX_WHISPER_LANGUAGE", "")
+    )
     whisper_model_dir: str = field(default_factory=lambda: os.getenv(
         "VOCIX_MODEL_DIR", str(APP_DIR / "models")
     ))
+
+    @property
+    def whisper_language(self) -> str:
+        return self.whisper_language_override or self.language
 
     # Audio
     sample_rate: int = 16000
@@ -119,10 +131,15 @@ class Config:
         """Lädt die .env-Datei und erzeugt Config aus der resultierenden Umgebung.
 
         Priorität: Prozess-Env schlägt .env-Werte (dotenv-Default `override=False`).
+        Für `language` gilt zusätzlich: state.json > env > Default.
         Tests können stattdessen `Config(...)` direkt aufrufen und die Felder
         explizit setzen, ohne Dateisystem-Nebeneffekte.
         """
         path = Path(env_file) if env_file is not None else APP_DIR / ".env"
         if path.exists():
             load_dotenv(path)
-        return cls()
+        config = cls()
+        stored = load_state().get("language")
+        if stored in ("de", "en"):
+            config.language = stored
+        return config
