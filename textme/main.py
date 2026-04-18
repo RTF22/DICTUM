@@ -67,6 +67,7 @@ class TextMEApp:
         self._current_mode = self._config.default_mode
         self._running = True
         self._processing = False
+        self._state_lock = threading.Lock()
 
         logger.info("=" * 50)
         logger.info("DICTUM v%s startet...", __version__)
@@ -112,9 +113,10 @@ class TextMEApp:
         logger.info("Modus: %s", mode)
 
     def _on_record_start(self) -> None:
-        if self._processing:
-            logger.debug("Aufnahme ignoriert — Pipeline läuft noch")
-            return
+        with self._state_lock:
+            if self._processing:
+                logger.debug("Aufnahme ignoriert — Pipeline läuft noch")
+                return
         try:
             self._recorder.start()
             self._overlay.show("Aufnahme...", "recording")
@@ -126,12 +128,15 @@ class TextMEApp:
     def _on_record_stop(self) -> None:
         if not self._recorder.is_recording:
             return
+        with self._state_lock:
+            if self._processing:
+                return  # Pipeline läuft bereits — zweiten Stop ignorieren
+            self._processing = True
         logger.info(">> Aufnahme beendet (Hotkey losgelassen)")
         # Pipeline in separatem Thread, damit Hotkey-Handler nicht blockiert
         threading.Thread(target=self._process_pipeline, daemon=True).start()
 
     def _process_pipeline(self) -> None:
-        self._processing = True
         try:
             audio = self._recorder.stop()
             if audio is None:
@@ -174,7 +179,8 @@ class TextMEApp:
             logger.error("Pipeline-Fehler: %s", e, exc_info=True)
             self._overlay.show_temporary("Fehler!", "error")
         finally:
-            self._processing = False
+            with self._state_lock:
+                self._processing = False
 
     def _register_hotkeys(self) -> None:
         record_key = self._config.hotkey_record
