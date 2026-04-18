@@ -63,7 +63,7 @@ Alle Einstellungen werden über die `.env`-Datei im Anwendungsverzeichnis gesteu
 # Anthropic API-Key (optional, für Modus B und C)
 ANTHROPIC_API_KEY=sk-ant-dein-key-hier
 
-# Hotkeys — Einzeltaste oder Kombination
+# Hotkeys — Push-to-Talk benötigt eine Einzeltaste, Moduswechsel dürfen Kombos sein
 DICTUM_HOTKEY_RECORD=f9
 DICTUM_HOTKEY_MODE_A=ctrl+shift+1
 DICTUM_HOTKEY_MODE_B=ctrl+shift+2
@@ -78,6 +78,8 @@ DICTUM_RDP_MODE=true
 ```
 
 Ohne API-Key fallen Modus B und C automatisch auf Modus A (Clean) zurück.
+
+**Env-Priorität:** Variablen, die bereits in der Prozess-Umgebung gesetzt sind, überschreiben Werte aus der `.env` nicht (Standard-Verhalten von `python-dotenv`). Wer einen Wert temporär überschreiben möchte, exportiert ihn vor dem Start der App.
 
 ## Bedienung
 

@@ -17,9 +17,6 @@ def _get_app_dir() -> Path:
 
 APP_DIR = _get_app_dir()
 
-# .env aus dem Anwendungsverzeichnis laden
-load_dotenv(APP_DIR / ".env")
-
 
 @dataclass
 class Config:
@@ -83,3 +80,16 @@ class Config:
                 f"'right shift'). Siehe .docs/DECISIONS.md ADR 004. "
                 f"Default ist 'f9'."
             )
+
+    @classmethod
+    def load(cls, env_file: Path | str | None = None) -> "Config":
+        """Lädt die .env-Datei und erzeugt Config aus der resultierenden Umgebung.
+
+        Priorität: Prozess-Env schlägt .env-Werte (dotenv-Default `override=False`).
+        Tests können stattdessen `Config(...)` direkt aufrufen und die Felder
+        explizit setzen, ohne Dateisystem-Nebeneffekte.
+        """
+        path = Path(env_file) if env_file is not None else APP_DIR / ".env"
+        if path.exists():
+            load_dotenv(path)
+        return cls()

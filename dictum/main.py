@@ -60,7 +60,7 @@ logger = logging.getLogger(__name__)
 
 class DictumApp:
     def __init__(self):
-        self._config = Config()
+        self._config = Config.load()
         _setup_logging(self._config)
 
         self._current_mode = self._config.default_mode
