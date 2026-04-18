@@ -31,7 +31,10 @@ class RageProcessor(TextProcessor):
         if config.anthropic_api_key:
             try:
                 import anthropic
-                self._client = anthropic.Anthropic(api_key=config.anthropic_api_key)
+                self._client = anthropic.Anthropic(
+                    api_key=config.anthropic_api_key,
+                    timeout=config.anthropic_timeout,
+                )
             except ImportError:
                 logger.warning("anthropic-Paket nicht installiert, Fallback auf Clean-Modus")
         else:

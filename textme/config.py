@@ -49,6 +49,7 @@ class Config:
     # Anthropic
     anthropic_api_key: str = field(default_factory=lambda: os.getenv("ANTHROPIC_API_KEY", ""))
     anthropic_model: str = "claude-sonnet-4-20250514"
+    anthropic_timeout: float = 15.0  # Sekunden — bei Timeout Fallback auf Clean-Modus
 
     # RDP / Remote Desktop
     rdp_mode: bool = field(default_factory=lambda: os.getenv("DICTUM_RDP_MODE", "").lower() in ("1", "true", "yes"))
