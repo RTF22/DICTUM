@@ -6,7 +6,6 @@ Moduswechsel: Ctrl+Shift+1 (Clean) / 2 (Business) / 3 (Rage).
 
 import logging
 import logging.handlers
-import os
 import sys
 import threading
 
@@ -223,9 +222,17 @@ class TextMEApp:
     def _quit(self) -> None:
         logger.info("DICTUM wird beendet...")
         self._running = False
-        self._overlay.destroy()
         keyboard.unhook_all()
-        os._exit(0)
+        try:
+            self._tray.stop()
+        except Exception as e:
+            logger.warning("Tray-Stop fehlgeschlagen: %s", e)
+        self._overlay.destroy()
+        # tkinter-Thread kurz Zeit geben, sauber abzuräumen
+        overlay_thread = getattr(self._overlay, "_thread", None)
+        if overlay_thread is not None:
+            overlay_thread.join(timeout=1.0)
+        sys.exit(0)
 
     def run(self) -> None:
         self._tray.start()
