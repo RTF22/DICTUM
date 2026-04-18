@@ -1,9 +1,13 @@
+import json
+import logging
 import os
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from dotenv import load_dotenv
+
+logger = logging.getLogger(__name__)
 
 
 def _get_app_dir() -> Path:
@@ -16,6 +20,35 @@ def _get_app_dir() -> Path:
 
 
 APP_DIR = _get_app_dir()
+
+
+def _get_state_file() -> Path:
+    """Pfad zur persistenten State-Datei für User-Einstellungen (z.B. übersprungene Update-Versionen)."""
+    appdata = os.getenv("APPDATA")
+    base = Path(appdata) if appdata else APP_DIR
+    return base / "TextME" / "state.json"
+
+
+STATE_FILE = _get_state_file()
+
+
+def load_state() -> dict:
+    """Lädt persistenten State. Liefert {} bei Fehlern oder fehlender Datei."""
+    try:
+        if STATE_FILE.exists():
+            return json.loads(STATE_FILE.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as e:
+        logger.warning("State-Datei konnte nicht gelesen werden: %s", e)
+    return {}
+
+
+def save_state(state: dict) -> None:
+    """Schreibt State-Dict nach STATE_FILE. Fehler werden geloggt, nicht geraised."""
+    try:
+        STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        STATE_FILE.write_text(json.dumps(state, indent=2), encoding="utf-8")
+    except OSError as e:
+        logger.warning("State-Datei konnte nicht gespeichert werden: %s", e)
 
 
 @dataclass

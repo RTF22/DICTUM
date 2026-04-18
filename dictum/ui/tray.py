@@ -8,6 +8,8 @@ from PIL import Image, ImageDraw, ImageFont
 from pystray import Icon, Menu, MenuItem
 
 from dictum import __version__
+from dictum import config as config_module
+from dictum import updater
 
 logger = logging.getLogger(__name__)
 _REPO_URL = "https://github.com/RTF22/DICTUM"
@@ -97,6 +99,7 @@ class TrayApp:
         self._on_quit = on_quit
         self._icon: Icon | None = None
         self._thread: threading.Thread | None = None
+        self._update_info: updater.UpdateInfo | None = None
 
     def _build_menu(self) -> Menu:
         def make_switch(mode: str):
@@ -112,9 +115,67 @@ class TrayApp:
                 )
             )
         items.append(Menu.SEPARATOR)
+        if self._update_info is not None:
+            items.append(MenuItem(
+                f"🔔 Update {self._update_info.version} verfügbar",
+                self._on_open_release,
+            ))
+            items.append(MenuItem(
+                "   Diese Version überspringen",
+                self._on_skip_version,
+            ))
+            items.append(Menu.SEPARATOR)
+        items.append(MenuItem("Nach Updates suchen…", self._on_manual_check))
         items.append(MenuItem("Info", self._show_about))
         items.append(MenuItem("Beenden", self._quit))
         return Menu(*items)
+
+    def set_update_available(self, info: "updater.UpdateInfo") -> None:
+        """Callback für UpdateChecker: speichert Info, rebuildet Menü, zeigt Toast."""
+        self._update_info = info
+        logger.info("Update verfügbar: %s (%s)", info.version, info.url)
+        self._update_icon()
+        self._notify(
+            "DICTUM — Update verfügbar",
+            f"Version {info.version} ist verfügbar. Klicke im Tray-Menü zum Öffnen.",
+        )
+
+    def _on_open_release(self) -> None:
+        if self._update_info is not None and self._update_info.url:
+            webbrowser.open(self._update_info.url)
+
+    def _on_skip_version(self) -> None:
+        if self._update_info is None:
+            return
+        state = config_module.load_state()
+        state["skip_update_version"] = self._update_info.version
+        config_module.save_state(state)
+        logger.info("Update %s wird übersprungen", self._update_info.version)
+        self._update_info = None
+        self._update_icon()
+
+    def _on_manual_check(self) -> None:
+        """Synchroner Check mit Toast-Feedback — in kurzlebigem Thread, um Menü nicht zu blockieren."""
+        def _run():
+            self._notify("DICTUM", "Suche nach Updates…")
+            # Bei manuellem Check ignorieren wir skip_version bewusst
+            info = updater.check_latest(__version__, skip_version=None)
+            if info is None:
+                # Unterscheiden wir nicht zwischen 'kein Update' und 'Fehler' —
+                # beides ist für den User dasselbe: kein Update zu holen.
+                self._notify("DICTUM", "Du bist auf der aktuellsten Version.")
+            else:
+                self.set_update_available(info)
+
+        threading.Thread(target=_run, name="ManualUpdateCheck", daemon=True).start()
+
+    def _notify(self, title: str, message: str) -> None:
+        if self._icon is None:
+            return
+        try:
+            self._icon.notify(message, title=title)
+        except Exception as e:
+            logger.warning("Toast-Benachrichtigung fehlgeschlagen: %s", e)
 
     @staticmethod
     def _show_about() -> None:

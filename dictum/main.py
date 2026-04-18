@@ -11,9 +11,9 @@ import threading
 
 import keyboard
 
-from dictum import __version__
+from dictum import __version__, updater
 from dictum.audio.recorder import AudioRecorder
-from dictum.config import Config
+from dictum.config import Config, load_state
 from dictum.output.injector import TextInjector
 from dictum.processing.base import TextProcessor
 from dictum.processing.business import BusinessProcessor
@@ -222,9 +222,19 @@ class DictumApp:
             overlay_thread.join(timeout=1.0)
         sys.exit(0)
 
+    def _start_update_check(self) -> None:
+        """Startet asynchronen Update-Check im Hintergrund. Silent bei Fehlern."""
+        skip_version = load_state().get("skip_update_version")
+        updater.check_async(
+            current_version=__version__,
+            skip_version=skip_version,
+            on_update_found=self._tray.set_update_available,
+        )
+
     def run(self) -> None:
         self._tray.start()
         self._register_hotkeys()
+        self._start_update_check()
 
         logger.info("DICTUM läuft. Zum Beenden: Tray-Icon → Beenden")
         try:
