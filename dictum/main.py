@@ -67,6 +67,7 @@ class DictumApp:
         self._running = True
         self._processing = False
         self._state_lock = threading.Lock()
+        self._quit_event = threading.Event()
 
         logger.info("=" * 50)
         logger.info("DICTUM v%s startet...", __version__)
@@ -220,7 +221,9 @@ class DictumApp:
         overlay_thread = getattr(self._overlay, "_thread", None)
         if overlay_thread is not None:
             overlay_thread.join(timeout=1.0)
-        sys.exit(0)
+        # Main-Thread aus run() entlassen. sys.exit() hier wirkt nur im
+        # Tray-Thread (Daemon) und würde den Prozess nicht beenden.
+        self._quit_event.set()
 
     def _start_update_check(self) -> None:
         """Startet asynchronen Update-Check im Hintergrund. Silent bei Fehlern."""
@@ -238,7 +241,11 @@ class DictumApp:
 
         logger.info("DICTUM läuft. Zum Beenden: Tray-Icon → Beenden")
         try:
-            keyboard.wait()  # Blockiert bis alle Hooks entfernt werden
+            # Blockiert bis _quit() das Event setzt (aus Tray-Thread oder Ctrl+C).
+            # keyboard.wait() blockiert auch nach unhook_all() weiter, daher
+            # verwenden wir ein eigenes Event.
+            while not self._quit_event.wait(timeout=0.5):
+                pass
         except KeyboardInterrupt:
             self._quit()
 
