@@ -14,7 +14,7 @@ Dokumentation der wichtigsten Design- und Technologieentscheidungen mit Begründ
 - `pyautogui.write()` — Scheitert an Umlauten (ä, ö, ü, ß) und Sonderzeichen. Sendet einzelne Tastenanschläge, extrem langsam bei langen Texten.
 - Windows `SendInput` API direkt — siehe Recherche-Update 2026-04-18 unten für detaillierte Begründung.
 
-**Tradeoff:** Kurzzeitige Unterbrechung der Zwischenablage des Nutzers (wird nach ~200ms wiederhergestellt).
+**Tradeoff:** Kurzzeitige Unterbrechung der Zwischenablage des Nutzers (wird nach ~200ms wiederhergestellt). **Grenze:** Nur Text-Inhalte werden wiederhergestellt. Liegt beim Aufnahmestart ein Bild, eine Datei oder ein anderes Nicht-Text-Format in der Zwischenablage, erkennt `TextInjector` das per `IsClipboardFormatAvailable(CF_UNICODETEXT)`, loggt eine Warnung und überspringt den Restore. Der eingefügte Text bleibt in der Zwischenablage — besser, als den ursprünglichen Nicht-Text-Inhalt durch einen leeren String aktiv zu zerstören (Issue #5). Eine vollständige Multi-Format-Sicherung via `OpenClipboard`/`EnumClipboardFormats` wurde gegen den Implementierungsaufwand verworfen.
 
 ### Recherche-Update 2026-04-18
 

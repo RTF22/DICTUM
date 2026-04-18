@@ -1,3 +1,4 @@
+import ctypes
 import logging
 import time
 
@@ -7,6 +8,9 @@ import pyperclip
 from dictum.config import Config
 
 logger = logging.getLogger(__name__)
+
+# Windows Clipboard-Format-IDs (Win32 API)
+_CF_UNICODETEXT = 13
 
 
 class TextInjector:
@@ -32,11 +36,22 @@ class TextInjector:
             logger.warning("Leerer Text, nichts einzufügen")
             return
 
-        # Aktuelle Zwischenablage sichern
-        try:
-            original_clipboard = pyperclip.paste()
-        except pyperclip.PyperclipException:
-            original_clipboard = ""
+        # None signalisiert "Restore überspringen" — pyperclip.paste() liefert bei
+        # Bild/Datei-Clipboards "", der Restore würde den Nicht-Text-Inhalt zerstören.
+        user32 = ctypes.windll.user32
+        has_text = bool(user32.IsClipboardFormatAvailable(_CF_UNICODETEXT))
+        if has_text:
+            try:
+                original_clipboard = pyperclip.paste()
+            except pyperclip.PyperclipException:
+                original_clipboard = None
+        else:
+            original_clipboard = None
+            if user32.CountClipboardFormats() > 0:
+                logger.warning(
+                    "Zwischenablage enthält Nicht-Text-Inhalt (z.B. Bild oder Datei). "
+                    "Dieser wird durch die Einfügung überschrieben und nicht wiederhergestellt."
+                )
 
         try:
             # Text in Zwischenablage
@@ -55,9 +70,9 @@ class TextInjector:
             logger.error("Fehler beim Einfügen: %s", e)
             raise
         finally:
-            # Zwischenablage wiederherstellen
             time.sleep(self._clipboard_delay)
-            try:
-                pyperclip.copy(original_clipboard)
-            except pyperclip.PyperclipException:
-                pass
+            if original_clipboard is not None:
+                try:
+                    pyperclip.copy(original_clipboard)
+                except pyperclip.PyperclipException:
+                    pass
