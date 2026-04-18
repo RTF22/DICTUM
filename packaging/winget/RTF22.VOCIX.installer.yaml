@@ -1,0 +1,14 @@
+PackageIdentifier: RTF22.VOCIX
+PackageVersion: 1.1.0
+InstallerType: zip
+NestedInstallerType: portable
+NestedInstallerFiles:
+  - RelativeFilePath: VOCIX\VOCIX.exe
+    PortableCommandAlias: vocix
+Installers:
+  - Architecture: x64
+    InstallerUrl: https://github.com/RTF22/VOCIX/releases/download/v1.1.0/VOCIX-v1.1.0-win-x64.zip
+    InstallerSha256: 006685FCF0DD6BB82EC66DF2473B7B708CC22A898943552B35C2926813BF1F68
+ReleaseDate: 2026-04-18
+ManifestType: installer
+ManifestVersion: 1.6.0
