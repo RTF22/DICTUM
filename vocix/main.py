@@ -13,7 +13,7 @@ import keyboard
 
 from vocix import __version__, i18n, updater
 from vocix.audio.recorder import AudioRecorder
-from vocix.config import Config, load_state, save_state
+from vocix.config import Config, load_state, update_state
 from vocix.i18n import t
 from vocix.output.injector import TextInjector
 from vocix.processing.base import TextProcessor
@@ -125,9 +125,8 @@ class VocixApp:
             return
         i18n.set_language(code)
         self._config.language = code
-        state = load_state()
-        state["language"] = code
-        save_state(state)
+        with update_state() as state:
+            state["language"] = code
         # Tray-Menü neu aufbauen (Labels jetzt in neuer Sprache)
         self._tray.update_language(code)
         self._overlay.show_temporary(t("overlay.ready"), "done")
@@ -135,9 +134,8 @@ class VocixApp:
 
     def _set_translate(self, enabled: bool) -> None:
         self._config.translate_to_english = enabled
-        state = load_state()
-        state["translate_to_english"] = enabled
-        save_state(state)
+        with update_state() as state:
+            state["translate_to_english"] = enabled
         logger.info("Translate-to-English: %s", enabled)
 
     def _on_record_start(self) -> None:

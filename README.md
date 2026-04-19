@@ -120,7 +120,9 @@ Without an API key, modes B and C automatically fall back to mode A (Clean).
 
 | Problem | Solution |
 |---|---|
+| SmartScreen: "Windows protected your PC" on first launch | Click **More info → Run anyway**. VOCIX is open source and the release ZIP is reproducible from `main` via `build_exe.bat`. Code signing is tracked in [#12](https://github.com/RTF22/VOCIX/issues/12). |
 | Tray icon not visible | Check hidden icons in the taskbar (arrow pointing up) |
+| "VOCIX requires a CPU with AVX support" on startup | Your CPU is older than ~2012 and cannot run CTranslate2. VOCIX will not work on this machine. |
 | Hotkey doesn't respond | Run the app as administrator |
 | "Microphone unavailable" | Check microphone permissions in Windows settings |
 | Modes B/C only return Clean results | Verify `ANTHROPIC_API_KEY` in `.env` |

@@ -47,6 +47,8 @@
 
   "error.mic_unavailable": "Microphone unavailable. Please check your audio settings.",
   "error.clipboard_nontext": "Clipboard contains non-text content (e.g. an image or file). It will be overwritten by the insertion and cannot be restored.",
+  "error.cpu_unsupported_title": "VOCIX cannot start",
+  "error.cpu_unsupported_body": "VOCIX requires a CPU with AVX support (roughly 2012 or newer). The speech-to-text engine (CTranslate2) could not be loaded on this machine.\n\nDetails: {details}",
 
   "prompt.business": "You are a professional writing assistant for business communication.\n\nYour task:\n- Transform the spoken text into professional, formal written language.\n- The result should be suitable for e-mails, letters or business documents.\n- Improve structure, grammar and tone.\n- Remove filler words and colloquial expressions.\n- Preserve the original meaning exactly.\n- Respond ONLY with the rewritten text, no explanations or annotations.\n- Respond in the same language as the input text.",
   "prompt.rage": "You are a de-escalation assistant.\n\nYour task:\n- You receive text that may be aggressive, rude or emotionally charged.\n- Rewrite it into a polite, respectful and factual form.\n- The ORIGINAL MEANING and all factual arguments MUST be fully preserved.\n- Remove insults, profanity and aggressive phrasing.\n- Replace them with factual, constructive alternatives.\n- The tone should be firm but polite — not submissive.\n- Respond ONLY with the rewritten text, no explanations or annotations.\n- Respond in the same language as the input text."

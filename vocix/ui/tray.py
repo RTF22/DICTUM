@@ -167,9 +167,8 @@ class TrayApp:
     def _on_skip_version(self) -> None:
         if self._update_info is None:
             return
-        state = config_module.load_state()
-        state["skip_update_version"] = self._update_info.version
-        config_module.save_state(state)
+        with config_module.update_state() as state:
+            state["skip_update_version"] = self._update_info.version
         logger.info("Update %s wird übersprungen", self._update_info.version)
         self._update_info = None
         self._update_icon()
@@ -195,13 +194,12 @@ class TrayApp:
 
     @staticmethod
     def _show_about() -> None:
-        """About-Dialog mit Versionsinfo und Repo-Link."""
-        import tkinter as tk
-        from tkinter import messagebox
+        """About-Dialog mit Versionsinfo und Repo-Link.
 
-        root = tk.Tk()
-        root.withdraw()
-        root.attributes("-topmost", True)
+        Nutzt native Win32-MessageBox (via `native_dialog`) statt tkinter —
+        vermeidet einen zweiten Tk-Root neben dem StatusOverlay (siehe #13).
+        """
+        from vocix.ui import native_dialog
 
         body = (
             f"VOCIX v{__version__}\n"
@@ -210,15 +208,8 @@ class TrayApp:
             f"{t('about.repository')}\n{_REPO_URL}\n\n"
             f"{t('about.open_browser')}"
         )
-        result = messagebox.askquestion(
-            t("about.title"),
-            body,
-            icon="info",
-        )
-        if result == "yes":
+        if native_dialog.show_info_with_link(t("about.title"), body):
             webbrowser.open(_REPO_URL)
-
-        root.destroy()
 
     def _toggle_translate(self) -> None:
         self._translate_to_english = not self._translate_to_english

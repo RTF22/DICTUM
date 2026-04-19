@@ -2,12 +2,19 @@ import json
 import logging
 import os
 import sys
+import threading
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
+
+# Serialisiert Zugriffe auf state.json. Update-Thread (updater) und Tray-Thread
+# können parallel laden/schreiben wollen; ohne Lock könnten Schreibvorgänge
+# sich gegenseitig überschreiben oder eine halbgeschriebene Datei hinterlassen.
+_STATE_LOCK = threading.RLock()
 
 
 def _get_app_dir() -> Path:
@@ -34,21 +41,39 @@ STATE_FILE = _get_state_file()
 
 def load_state() -> dict:
     """Lädt persistenten State. Liefert {} bei Fehlern oder fehlender Datei."""
-    try:
-        if STATE_FILE.exists():
-            return json.loads(STATE_FILE.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as e:
-        logger.warning("State-Datei konnte nicht gelesen werden: %s", e)
-    return {}
+    with _STATE_LOCK:
+        try:
+            if STATE_FILE.exists():
+                return json.loads(STATE_FILE.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as e:
+            logger.warning("State-Datei konnte nicht gelesen werden: %s", e)
+        return {}
 
 
 def save_state(state: dict) -> None:
     """Schreibt State-Dict nach STATE_FILE. Fehler werden geloggt, nicht geraised."""
-    try:
-        STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-        STATE_FILE.write_text(json.dumps(state, indent=2), encoding="utf-8")
-    except OSError as e:
-        logger.warning("State-Datei konnte nicht gespeichert werden: %s", e)
+    with _STATE_LOCK:
+        try:
+            STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+            STATE_FILE.write_text(json.dumps(state, indent=2), encoding="utf-8")
+        except OSError as e:
+            logger.warning("State-Datei konnte nicht gespeichert werden: %s", e)
+
+
+@contextmanager
+def update_state():
+    """Atomares Read-Modify-Write für state.json.
+
+    Beispiel:
+        with update_state() as s:
+            s["skip_update_version"] = "1.2.3"
+    Der gesamte Zyklus läuft unter `_STATE_LOCK`, sodass parallele Mutationen
+    aus verschiedenen Threads sich nicht mehr gegenseitig überschreiben.
+    """
+    with _STATE_LOCK:
+        state = load_state()
+        yield state
+        save_state(state)
 
 
 @dataclass

@@ -13,6 +13,7 @@ Fallback: gesuchte Sprache → Englisch → Schlüssel als String.
 import json
 import logging
 import sys
+import threading
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -22,6 +23,10 @@ _FALLBACK_LANGUAGE = "en"
 
 _translations: dict[str, dict[str, str]] = {}
 _current_language = _DEFAULT_LANGUAGE
+# Schützt _current_language und _translations vor Races zwischen set_language()
+# (Tray-Thread) und t() (Pipeline-Thread). RLock, weil _ensure_loaded() intern
+# wieder unter Lock laufen darf.
+_LOCK = threading.RLock()
 
 
 def _locales_dir() -> Path:
@@ -45,8 +50,9 @@ def _load_file(code: str) -> dict[str, str]:
 
 
 def _ensure_loaded(code: str) -> None:
-    if code not in _translations:
-        _translations[code] = _load_file(code)
+    with _LOCK:
+        if code not in _translations:
+            _translations[code] = _load_file(code)
 
 
 def available_languages() -> dict[str, str]:
@@ -56,30 +62,38 @@ def available_languages() -> dict[str, str]:
 def set_language(code: str) -> None:
     global _current_language
     if code not in available_languages():
-        logger.warning("Unbekannter Sprachcode %r — bleibe bei %r", code, _current_language)
+        with _LOCK:
+            current = _current_language
+        logger.warning("Unbekannter Sprachcode %r — bleibe bei %r", code, current)
         return
     _ensure_loaded(code)
     _ensure_loaded(_FALLBACK_LANGUAGE)
-    _current_language = code
+    with _LOCK:
+        _current_language = code
 
 
 def get_language() -> str:
-    return _current_language
+    with _LOCK:
+        return _current_language
 
 
 def whisper_code() -> str:
     """Whisper-Sprachcode für aktuelle UI-Sprache (derzeit 1:1-Mapping)."""
-    return _current_language
+    with _LOCK:
+        return _current_language
 
 
 def t(key: str, **kwargs) -> str:
-    _ensure_loaded(_current_language)
+    with _LOCK:
+        current = _current_language
+    _ensure_loaded(current)
     _ensure_loaded(_FALLBACK_LANGUAGE)
-    value = (
-        _translations.get(_current_language, {}).get(key)
-        or _translations.get(_FALLBACK_LANGUAGE, {}).get(key)
-        or key
-    )
+    with _LOCK:
+        value = (
+            _translations.get(current, {}).get(key)
+            or _translations.get(_FALLBACK_LANGUAGE, {}).get(key)
+            or key
+        )
     if kwargs:
         try:
             return value.format(**kwargs)
