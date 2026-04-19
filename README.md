@@ -11,7 +11,7 @@ Local voice dictation app for Windows 11 with a global hotkey. Capture speech, t
 
 ## Features
 
-- **Push-to-Talk** via global hotkey (default: `F9`)
+- **Push-to-Talk** via global hotkey (default: `F8`)
 - **Three modes:**
   - **A — Clean:** Clean transcription; strips filler words (um, uh, like, ...) with light corrections
   - **B — Business:** Rewrites speech into professional business language (Claude API)
@@ -77,7 +77,7 @@ ANTHROPIC_API_KEY=sk-ant-your-key-here
 VOCIX_LANGUAGE=en
 
 # Hotkeys — push-to-talk requires a single key, mode switchers may be combos
-VOCIX_HOTKEY_RECORD=f9
+VOCIX_HOTKEY_RECORD=f8
 VOCIX_HOTKEY_MODE_A=ctrl+shift+1
 VOCIX_HOTKEY_MODE_B=ctrl+shift+2
 VOCIX_HOTKEY_MODE_C=ctrl+shift+3
@@ -98,14 +98,14 @@ Without an API key, modes B and C automatically fall back to mode A (Clean).
 
 | Shortcut | Action |
 |---|---|
-| `F9` (hold) | Push-to-talk — speak, release to process |
+| `F8` (hold) | Push-to-talk — speak, release to process |
 | `Ctrl+Shift+1` | Mode A: Clean transcription |
 | `Ctrl+Shift+2` | Mode B: Business mode |
 | `Ctrl+Shift+3` | Mode C: Rage mode |
 
 **Workflow:**
 1. Place the cursor in the target field (e-mail, chat, text editor, …)
-2. Hold `F9` and speak
+2. Hold `F8` and speak
 3. Release — the text is transcribed, transformed and automatically inserted
 
 **Tray menu:** right-click the tray icon → mode switch, **Language / Sprache** (English / Deutsch — switches UI, Claude prompts and Whisper STT), **About** (version + repo link), **Quit**
