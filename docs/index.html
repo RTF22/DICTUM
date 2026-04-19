@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VOCIX — Voice Capture & Intelligent eXpression</title>
+<meta name="description" content="VOCIX — local voice dictation for Windows 11 with global hotkey. Whisper STT offline + optional Claude text processing. 100% free and open source.">
+<meta property="og:title" content="VOCIX — Voice Capture & Intelligent eXpression">
+<meta property="og:description" content="Local voice dictation for Windows. Push-to-talk with F8, offline Whisper STT, optional translation to English, three text modes. Portable, free, open source.">
+<meta property="og:image" content="https://rtf22.github.io/VOCIX/assets/vocix-logo-badge.jpg">
+<meta property="og:url" content="https://rtf22.github.io/VOCIX/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="assets/vocix-logo.svg">
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="vocix-tokens.css">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-body); background: var(--color-bg-light); color: var(--color-ink); overflow-x: hidden; }
+a { color: inherit; text-decoration: none; }
+
+/* NAV */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--color-ink);
+  border-bottom: 3px solid var(--color-ink);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 40px; height: 60px;
+}
+.nav-logo { font-family: var(--font-display); font-size: 32px; letter-spacing: 0.05em; line-height: 1; }
+.nav-logo .v { color: var(--color-letter-v); }
+.nav-logo .o { color: var(--color-letter-o); }
+.nav-logo .c { color: var(--color-letter-c); }
+.nav-logo .i { color: var(--color-tagline-i); }
+.nav-logo .x { color: #c0c8d8; }
+.nav-links { display: flex; align-items: center; gap: 20px; }
+.nav-link { font-family: var(--font-body); font-weight: 700; font-size: 13px; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.06em; transition: color 120ms; cursor: pointer; }
+.nav-link:hover { color: var(--color-yellow-highlight); }
+
+/* Language toggle */
+.lang-toggle {
+  display: flex; align-items: center;
+  border: 2.5px solid rgba(255,255,255,0.3);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.lang-btn {
+  font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+  padding: 5px 12px; cursor: pointer; border: none; background: transparent;
+  color: rgba(255,255,255,0.5); letter-spacing: 0.06em;
+  transition: background 120ms, color 120ms;
+}
+.lang-btn.active { background: var(--color-yellow-highlight); color: var(--color-ink); }
+.lang-btn:not(.active):hover { color: white; }
+
+.btn-nav {
+  font-family: var(--font-display); font-size: 18px; letter-spacing: 0.05em;
+  background: var(--color-yellow-highlight); color: var(--color-ink);
+  border: 2.5px solid var(--color-ink); border-radius: var(--radius-md);
+  padding: 6px 20px; box-shadow: 3px 3px 0 rgba(255,255,255,0.3);
+  cursor: pointer; transition: transform 80ms, box-shadow 80ms; display: inline-block;
+}
+.btn-nav:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 rgba(255,255,255,0.3); }
+.btn-nav:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 rgba(255,255,255,0.3); }
+
+/* HERO */
+.hero {
+  min-height: calc(100vh - 60px);
+  background: var(--color-brand-cobalt);
+  background-image: radial-gradient(ellipse at 60% 40%, var(--color-brand-cobalt-mid) 0%, var(--color-brand-cobalt) 60%), radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px);
+  background-size: 100% 100%, 18px 18px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden; padding: 60px 24px;
+}
+.hero-rays { position: absolute; inset: 0; pointer-events: none; }
+.hero-rays::before {
+  content: ''; position: absolute; width: 200%; height: 200%; top: -50%; left: -50%;
+  background: conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.03) 5deg, transparent 10deg, transparent 22.5deg, rgba(255,255,255,0.03) 27.5deg, transparent 32.5deg, transparent 45deg, rgba(255,255,255,0.03) 50deg, transparent 55deg, transparent 67.5deg, rgba(255,255,255,0.03) 72.5deg, transparent 77.5deg, transparent 90deg, rgba(255,255,255,0.03) 95deg, transparent 100deg, transparent 112.5deg, rgba(255,255,255,0.03) 117.5deg, transparent 122.5deg, transparent 135deg, rgba(255,255,255,0.03) 140deg, transparent 145deg, transparent 157.5deg, rgba(255,255,255,0.03) 162.5deg, transparent 167.5deg, transparent 180deg, rgba(255,255,255,0.03) 185deg, transparent 190deg, transparent 202.5deg, rgba(255,255,255,0.03) 207.5deg, transparent 212.5deg, transparent 225deg, rgba(255,255,255,0.03) 230deg, transparent 235deg, transparent 247.5deg, rgba(255,255,255,0.03) 252.5deg, transparent 257.5deg, transparent 270deg, rgba(255,255,255,0.03) 275deg, transparent 280deg, transparent 292.5deg, rgba(255,255,255,0.03) 297.5deg, transparent 302.5deg, transparent 315deg, rgba(255,255,255,0.03) 320deg, transparent 325deg, transparent 337.5deg, rgba(255,255,255,0.03) 342.5deg, transparent 347.5deg);
+}
+.hero-inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; max-width: 900px; width: 100%; }
+.hero-card {
+  background: var(--color-bg-light); border: 4px solid var(--color-ink);
+  border-radius: 10px; box-shadow: 8px 8px 0 var(--color-ink);
+  padding: 48px 56px; width: 100%; position: relative;
+}
+.hero-free-badge {
+  position: absolute; top: -22px; right: 32px;
+  background: var(--color-yellow-highlight); border: 3px solid var(--color-ink);
+  border-radius: var(--radius-sm); box-shadow: 3px 3px 0 var(--color-ink);
+  font-family: var(--font-display); font-size: 18px; letter-spacing: 0.05em;
+  padding: 4px 16px; color: var(--color-ink); transform: rotate(2deg);
+}
+.hero-wordmark {
+  font-family: var(--font-display); font-size: clamp(80px, 14vw, 140px);
+  letter-spacing: 0.05em; line-height: 0.9; -webkit-text-stroke: 3px var(--color-ink); margin-bottom: 8px;
+}
+.hero-wordmark .v { color: var(--color-letter-v); }
+.hero-wordmark .o { color: var(--color-letter-o); }
+.hero-wordmark .c { color: var(--color-letter-c); }
+.hero-wordmark .i { color: var(--color-tagline-i); }
+.hero-wordmark .x { color: #94a3b8; }
+.hero-tagline-full { font-family: var(--font-body); font-weight: 800; font-size: clamp(13px,2vw,17px); letter-spacing: 0.04em; color: var(--color-ink); margin-bottom: 20px; }
+.hero-tagline-full .v { color: var(--color-tagline-v); font-size: 1.35em; line-height: 1; }
+.hero-tagline-full .tl-o { color: var(--color-letter-o); font-size: 1.35em; line-height: 1; }
+.hero-tagline-full .c { color: var(--color-tagline-c); font-size: 1.35em; line-height: 1; }
+.hero-tagline-full .i { color: var(--color-tagline-i); font-size: 1.35em; line-height: 1; }
+.hero-tagline-full .tl-x { color: #94a3b8; font-size: 1.35em; line-height: 1; }
+.hero-desc { font-family: var(--font-body); font-size: clamp(15px,2vw,19px); font-weight: 600; line-height: 1.5; color: var(--color-ink-soft); max-width: 560px; margin-bottom: 36px; }
+.hero-ctas { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin-bottom: 32px; }
+.btn-primary {
+  font-family: var(--font-display); font-size: 26px; letter-spacing: 0.05em;
+  background: var(--color-clean); color: white; border: 3px solid var(--color-ink);
+  border-radius: var(--radius-md); box-shadow: 5px 5px 0 var(--color-ink);
+  padding: 12px 32px; cursor: pointer; transition: transform 80ms, box-shadow 80ms;
+  display: inline-flex; align-items: center; gap: 10px;
+}
+.btn-primary:hover { transform: translate(-2px,-2px); box-shadow: 7px 7px 0 var(--color-ink); }
+.btn-primary:active { transform: translate(3px,3px); box-shadow: 2px 2px 0 var(--color-ink); }
+.btn-ghost {
+  font-family: var(--font-body); font-size: 15px; font-weight: 800; background: transparent;
+  color: var(--color-ink); border: 2.5px solid var(--color-ink); border-radius: var(--radius-md);
+  box-shadow: 3px 3px 0 var(--color-ink); padding: 10px 22px; cursor: pointer;
+  transition: transform 80ms, box-shadow 80ms, background 120ms;
+  display: inline-flex; align-items: center; gap: 8px; letter-spacing: 0.02em;
+}
+.btn-ghost:hover { transform: translate(-1px,-1px); box-shadow: 5px 5px 0 var(--color-ink); background: var(--color-ink); color: white; }
+.btn-ghost:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--color-ink); }
+.hero-pills { display: flex; flex-wrap: wrap; gap: 10px; }
+.pill { font-family: var(--font-mono); font-size: 12px; font-weight: 700; padding: 5px 13px; border: 2px solid var(--color-ink); border-radius: var(--radius-pill); background: var(--color-panel); box-shadow: 2px 2px 0 var(--color-ink); letter-spacing: 0.03em; }
+
+/* SECTIONS */
+section { padding: 88px 24px; }
+.section-inner { max-width: 1040px; margin: 0 auto; }
+.section-label { font-family: var(--font-mono); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-muted); margin-bottom: 12px; }
+.section-title { font-family: var(--font-display); font-size: clamp(36px,6vw,56px); letter-spacing: 0.05em; color: var(--color-ink); text-transform: uppercase; line-height: 1; margin-bottom: 16px; }
+.section-sub { font-family: var(--font-body); font-size: 17px; font-weight: 600; color: var(--fg-secondary); line-height: 1.5; max-width: 560px; margin-bottom: 48px; }
+
+/* HOW IT WORKS */
+#how { background: var(--color-panel); }
+.steps-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.step-card { background: var(--color-bg-light); border: 3px solid var(--color-ink); border-radius: var(--radius-md); box-shadow: 5px 5px 0 var(--color-ink); padding: 28px 24px; position: relative; transition: transform 80ms, box-shadow 80ms; }
+.step-card:hover { transform: translate(-2px,-2px); box-shadow: 7px 7px 0 var(--color-ink); }
+.step-num { font-family: var(--font-display); font-size: 64px; letter-spacing: 0.05em; line-height: 1; color: var(--color-ink); opacity: 0.08; position: absolute; top: 12px; right: 18px; }
+.step-key { font-family: var(--font-mono); font-size: 28px; font-weight: 700; background: var(--color-ink); color: var(--color-yellow-highlight); border-radius: var(--radius-sm); padding: 6px 16px; display: inline-block; margin-bottom: 16px; letter-spacing: 0.05em; }
+.step-icon { font-size: 36px; margin-bottom: 16px; display: block; }
+.step-title { font-family: var(--font-display); font-size: 26px; letter-spacing: 0.05em; color: var(--color-ink); text-transform: uppercase; margin-bottom: 8px; }
+.step-desc { font-family: var(--font-body); font-size: 15px; font-weight: 600; color: var(--fg-secondary); line-height: 1.5; }
+
+/* MODES */
+#modes { background: var(--color-bg-light); }
+.modes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+.mode-card { border: 3px solid var(--color-ink); border-radius: var(--radius-md); box-shadow: 6px 6px 0 var(--color-ink); overflow: hidden; transition: transform 80ms, box-shadow 80ms; }
+.mode-card:hover { transform: translate(-2px,-2px); box-shadow: 8px 8px 0 var(--color-ink); }
+.mode-header { padding: 22px 24px 18px; border-bottom: 3px solid var(--color-ink); }
+.mode-header-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.mode-letter-badge { font-family: var(--font-display); font-size: 22px; letter-spacing: 0.05em; color: white; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border: 2.5px solid var(--color-ink); border-radius: var(--radius-sm); box-shadow: 2px 2px 0 var(--color-ink); flex-shrink: 0; }
+.mode-name { font-family: var(--font-display); font-size: 36px; letter-spacing: 0.05em; text-transform: uppercase; line-height: 1; color: white; }
+.mode-hotkey { font-family: var(--font-mono); font-size: 11px; background: rgba(0,0,0,0.25); color: rgba(255,255,255,0.85); padding: 2px 8px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.3); display: inline-block; }
+.mode-body { background: var(--color-bg-light); padding: 20px 24px; }
+.mode-desc { font-family: var(--font-body); font-size: 15px; font-weight: 600; color: var(--fg-secondary); line-height: 1.5; margin-bottom: 14px; }
+.mode-example { background: var(--color-panel); border: 2px solid var(--color-ink); border-radius: var(--radius-sm); padding: 12px 14px; font-family: var(--font-body); font-size: 13px; font-weight: 600; line-height: 1.5; }
+.mode-example-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted); margin-bottom: 4px; }
+
+/* FEATURES */
+#features { background: var(--color-panel); }
+.features-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+.feature-card { background: var(--color-bg-light); border: 3px solid var(--color-ink); border-radius: var(--radius-md); box-shadow: 4px 4px 0 var(--color-ink); padding: 28px; display: flex; gap: 20px; align-items: flex-start; transition: transform 80ms, box-shadow 80ms; }
+.feature-card:hover { transform: translate(-1px,-1px); box-shadow: 6px 6px 0 var(--color-ink); }
+.feature-icon-box { width: 52px; height: 52px; border: 2.5px solid var(--color-ink); border-radius: var(--radius-sm); box-shadow: 2px 2px 0 var(--color-ink); display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
+.feature-title { font-family: var(--font-display); font-size: 22px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-ink); margin-bottom: 6px; }
+.feature-desc { font-family: var(--font-body); font-size: 14px; font-weight: 600; color: var(--fg-secondary); line-height: 1.5; }
+
+/* OPEN SOURCE */
+#opensource { background: var(--color-ink); position: relative; overflow: hidden; }
+#opensource::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px); background-size: 18px 18px; pointer-events: none; }
+.opensource-inner { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; z-index: 1; }
+.action-burst { font-family: var(--font-display); font-size: clamp(48px,10vw,96px); letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-yellow-highlight); -webkit-text-stroke: 2px rgba(0,0,0,0.3); line-height: 1; margin-bottom: 8px; }
+.action-burst span { color: white; -webkit-text-stroke: 2px rgba(0,0,0,0.3); }
+.opensource-sub { font-family: var(--font-body); font-size: 18px; font-weight: 700; color: rgba(255,255,255,0.75); max-width: 520px; line-height: 1.5; margin-bottom: 36px; }
+.opensource-badges { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; margin-bottom: 40px; }
+.os-badge { font-family: var(--font-display); font-size: 20px; letter-spacing: 0.05em; padding: 10px 24px; border: 3px solid rgba(255,255,255,0.4); border-radius: var(--radius-md); color: white; box-shadow: 3px 3px 0 rgba(255,255,255,0.15); }
+.os-badge.highlight { background: var(--color-yellow-highlight); color: var(--color-ink); border-color: var(--color-yellow-highlight); box-shadow: 4px 4px 0 rgba(0,0,0,0.4); }
+.btn-github { font-family: var(--font-display); font-size: 24px; letter-spacing: 0.05em; background: white; color: var(--color-ink); border: 3px solid var(--color-ink); border-radius: var(--radius-md); box-shadow: 5px 5px 0 rgba(255,255,255,0.2); padding: 14px 36px; cursor: pointer; transition: transform 80ms, box-shadow 80ms, background 120ms; display: inline-flex; align-items: center; gap: 12px; }
+.btn-github:hover { transform: translate(-2px,-2px); box-shadow: 7px 7px 0 rgba(255,255,255,0.2); background: var(--color-yellow-highlight); }
+.btn-github:active { transform: translate(3px,3px); box-shadow: 2px 2px 0 rgba(255,255,255,0.2); }
+
+/* DOWNLOAD */
+#download { background: var(--color-bg-light); }
+.download-box { border: 4px solid var(--color-ink); border-radius: var(--radius-md); box-shadow: 8px 8px 0 var(--color-ink); overflow: hidden; max-width: 740px; margin: 0 auto; }
+.download-header { background: var(--color-business); padding: 28px 36px; border-bottom: 4px solid var(--color-ink); }
+.download-title { font-family: var(--font-display); font-size: 48px; letter-spacing: 0.05em; color: white; text-transform: uppercase; -webkit-text-stroke: 1.5px rgba(0,0,0,0.2); line-height: 1; margin-bottom: 4px; }
+.download-version { font-family: var(--font-mono); font-size: 13px; color: rgba(255,255,255,0.7); }
+.download-body { background: var(--color-panel); padding: 32px 36px; }
+.req-list { list-style: none; margin-bottom: 28px; display: flex; flex-direction: column; gap: 10px; }
+.req-list li { font-family: var(--font-body); font-size: 15px; font-weight: 700; color: var(--color-ink); display: flex; align-items: center; gap: 10px; }
+.req-dot { width: 10px; height: 10px; background: var(--color-business); border: 2px solid var(--color-ink); border-radius: 50%; flex-shrink: 0; }
+.download-ctas { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+
+/* FOOTER */
+footer { background: var(--color-brand-navy); border-top: 3px solid var(--color-ink); padding: 32px 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+.footer-wordmark { font-family: var(--font-display); font-size: 24px; letter-spacing: 0.05em; }
+.footer-wordmark .v { color: var(--color-letter-v); }
+.footer-wordmark .o { color: var(--color-letter-o); }
+.footer-wordmark .c { color: var(--color-letter-c); }
+.footer-wordmark .i, .footer-wordmark .x { color: #c0c8d8; }
+.footer-copy { font-family: var(--font-body); font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.5); }
+.footer-links { display: flex; gap: 20px; }
+.footer-link { font-family: var(--font-body); font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer; transition: color 120ms; }
+.footer-link:hover { color: var(--color-yellow-highlight); }
+
+@media (max-width: 760px) {
+  nav { padding: 0 16px; }
+  .nav-links .nav-link { display: none; }
+  .hero-card { padding: 32px 20px; }
+  .steps-row, .modes-grid, .features-grid { grid-template-columns: 1fr; }
+  section { padding: 56px 20px; }
+  footer { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo"><span class="v">V</span><span class="o">O</span><span class="c">C</span><span class="i">I</span><span class="x">X</span></div>
+  <div class="nav-links">
+    <a class="nav-link" href="#how" data-i18n="nav_how">How it Works</a>
+    <a class="nav-link" href="#modes" data-i18n="nav_modes">Modes</a>
+    <a class="nav-link" href="#features" data-i18n="nav_features">Features</a>
+    <a class="nav-link" href="#opensource" data-i18n="nav_oss">Open Source</a>
+    <div class="lang-toggle">
+      <button class="lang-btn active" id="btn-en" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" id="btn-de" onclick="setLang('de')">DE</button>
+    </div>
+    <a class="btn-nav" href="#download" data-i18n="nav_download">Download</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-rays"></div>
+  <div class="hero-inner">
+    <div class="hero-card">
+      <div class="hero-free-badge" data-i18n="hero_badge">100% FREE &amp; OPEN SOURCE</div>
+      <div class="hero-wordmark"><span class="v">V</span><span class="o">O</span><span class="c">C</span><span class="i">I</span><span class="x">X</span></div>
+      <div class="hero-tagline-full">
+        <span class="v">V</span><span class="tl-o">O</span>ice <span class="c">C</span>apture &amp; <span class="i">I</span>ntelligent e<span class="tl-x">X</span>pression
+      </div>
+      <p class="hero-desc" style="color: rgb(30, 47, 64);" data-i18n="hero_desc">Local voice dictation for Windows with intelligent text processing. Push-to-talk with <strong>F8</strong>, Whisper STT offline — text inserted right at your cursor.</p>
+      <div class="hero-ctas">
+        <a class="btn-primary" href="#download">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span data-i18n="hero_cta_dl">Download for Windows</span>
+        </a>
+        <a class="btn-ghost" href="https://github.com/RTF22/VOCIX" target="_blank">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+          <span data-i18n="hero_cta_gh">View on GitHub</span>
+        </a>
+      </div>
+      <div class="hero-pills">
+        <span class="pill">Windows 10/11</span>
+        <span class="pill" data-i18n="pill_portable">Portable App</span>
+        <span class="pill" data-i18n="pill_offline">100% Offline STT</span>
+        <span class="pill">MIT License</span>
+        <span class="pill">Whisper AI</span>
+        <span class="pill">Claude-powered</span>
+        <span class="pill">F8 Push-to-Talk</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="section-inner">
+    <div class="section-label" data-i18n="how_label">Getting Started</div>
+    <div class="section-title" data-i18n="how_title">How It Works</div>
+    <p class="section-sub" data-i18n="how_sub">Three steps. No cloud. No subscription. No nonsense.</p>
+    <div class="steps-row">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <div class="step-key">F8</div>
+        <div class="step-title" data-i18n="step1_title">Hold to Record</div>
+        <p class="step-desc" data-i18n="step1_desc">Hold <code>F8</code> from anywhere on Windows. The microphone activates instantly — VOCIX lives in the system tray and is always ready.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <span class="step-icon">🎙</span>
+        <div class="step-title" data-i18n="step2_title">Speak Naturally</div>
+        <p class="step-desc" data-i18n="step2_desc">Talk normally. Release <code>F8</code> when done. Whisper transcribes your speech locally — nothing ever leaves your machine.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <span class="step-icon">⚡</span>
+        <div class="step-title" data-i18n="step3_title">Text Inserted</div>
+        <p class="step-desc" data-i18n="step3_desc">Processed text appears right at your cursor, in any application — email, browser, IDE, document. No paste required.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- THREE MODES -->
+<section id="modes">
+  <div class="section-inner">
+    <div class="section-label" data-i18n="modes_label">Intelligent Processing</div>
+    <div class="section-title" data-i18n="modes_title">Three Modes</div>
+    <p class="section-sub" data-i18n="modes_sub">Choose how your speech gets transformed before it hits the page. Switch modes instantly with keyboard shortcuts.</p>
+    <div class="modes-grid">
+      <!-- Clean -->
+      <div class="mode-card">
+        <div class="mode-header" style="background: var(--color-clean);">
+          <div class="mode-header-top">
+            <div class="mode-letter-badge" style="background: var(--color-clean-dark);">A</div>
+            <div class="mode-name">Clean</div>
+          </div>
+          <span class="mode-hotkey">Ctrl+Shift+1 &nbsp;·&nbsp; <span data-i18n="mode_offline">Fully Offline</span></span>
+        </div>
+        <div class="mode-body">
+          <p class="mode-desc" data-i18n="clean_desc">Strip filler words and light corrections — preserves your meaning, removes "um", "uh", false starts. Runs 100% locally, zero latency.</p>
+          <div class="mode-example">
+            <div class="mode-example-label" data-i18n="example_label">Before → After</div>
+            <span style="color:var(--fg-muted)" data-i18n="clean_before">"So um, I wanted to, uh, say that the meeting is… is tomorrow."</span>
+            <br>↓<br>
+            <strong data-i18n="clean_after">"The meeting is tomorrow."</strong>
+          </div>
+        </div>
+      </div>
+      <!-- Business -->
+      <div class="mode-card">
+        <div class="mode-header" style="background: var(--color-business);">
+          <div class="mode-header-top">
+            <div class="mode-letter-badge" style="background: var(--color-business-dark);">B</div>
+            <div class="mode-name">Business</div>
+          </div>
+          <span class="mode-hotkey">Ctrl+Shift+2 &nbsp;·&nbsp; Claude AI</span>
+        </div>
+        <div class="mode-body">
+          <p class="mode-desc" data-i18n="business_desc">Rewrites your speech into professional, formal language suitable for email, reports, or client communication. Powered by Claude.</p>
+          <div class="mode-example">
+            <div class="mode-example-label" data-i18n="example_label">Before → After</div>
+            <span style="color:var(--fg-muted)" data-i18n="business_before">"hey can you fix this bug it's been broken for ages"</span>
+            <br>↓<br>
+            <strong data-i18n="business_after">"I wanted to flag an ongoing issue that requires attention at your earliest convenience."</strong>
+          </div>
+        </div>
+      </div>
+      <!-- Rage -->
+      <div class="mode-card">
+        <div class="mode-header" style="background: var(--color-rage);">
+          <div class="mode-header-top">
+            <div class="mode-letter-badge" style="background: var(--color-rage-dark);">C</div>
+            <div class="mode-name">Rage</div>
+          </div>
+          <span class="mode-hotkey">Ctrl+Shift+3 &nbsp;·&nbsp; Claude AI</span>
+        </div>
+        <div class="mode-body">
+          <p class="mode-desc" data-i18n="rage_desc">De-escalates aggressive or frustrated speech into polite, firm communication. Preserve meaning, remove heat. Powered by Claude.</p>
+          <div class="mode-example">
+            <div class="mode-example-label" data-i18n="example_label">Before → After</div>
+            <span style="color:var(--fg-muted)" data-i18n="rage_before">"This is absolutely unacceptable, I'm furious about this delay!"</span>
+            <br>↓<br>
+            <strong data-i18n="rage_after">"I'd like to express my concern regarding the delay and request an update."</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-inner">
+    <div class="section-label" data-i18n="feat_label">Why VOCIX</div>
+    <div class="section-title" data-i18n="feat_title">Built Right</div>
+    <p class="section-sub" data-i18n="feat_sub">No cloud lock-in, no monthly fee, no account required. VOCIX respects your privacy and your wallet.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon-box" style="background: var(--color-clean-light);">🔒</div>
+        <div>
+          <div class="feature-title" data-i18n="feat1_title">100% Offline Speech-to-Text</div>
+          <p class="feature-desc" data-i18n="feat1_desc">Whisper runs fully on your machine. Your voice never leaves your computer. No API key, no internet, no privacy concerns.</p>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-box" style="background: var(--color-yellow-highlight);">⌨️</div>
+        <div>
+          <div class="feature-title" data-i18n="feat2_title">Works in Any App</div>
+          <p class="feature-desc" data-i18n="feat2_desc">Text is inserted at the cursor position in any Windows application — email clients, browsers, IDEs, Office apps, chat tools.</p>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-box" style="background: var(--color-business-light);">🌍</div>
+        <div>
+          <div class="feature-title" data-i18n="feat3_title">Multilingual</div>
+          <p class="feature-desc" data-i18n="feat3_desc">Whisper supports dozens of languages. Optional translation to English. Full German/English UI included out of the box.</p>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-box" style="background: var(--color-rage-light);">🗂️</div>
+        <div>
+          <div class="feature-title" data-i18n="feat4_title">System Tray App</div>
+          <p class="feature-desc" data-i18n="feat4_desc">Lives quietly in the tray. A colour-coded mic icon shows the current mode at a glance. Starts with Windows, stays out of your way.</p>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-box" style="background: #e0d9ff;">🤖</div>
+        <div>
+          <div class="feature-title" data-i18n="feat5_title">Claude-Powered Intelligence</div>
+          <p class="feature-desc" data-i18n="feat5_desc">Business and Rage modes use Anthropic's Claude for nuanced language transformation — not just autocorrect, real intelligence.</p>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-box" style="background: var(--color-panel);">🔧</div>
+        <div>
+          <div class="feature-title" data-i18n="feat6_title">Lightweight &amp; Fast</div>
+          <p class="feature-desc" data-i18n="feat6_desc">Python app with minimal footprint. Clean mode has zero added latency — transcribe and insert in under a second on modern hardware.</p>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-box" style="background: #d1fae5;">💼</div>
+        <div>
+          <div class="feature-title" data-i18n="feat7_title">Portable App</div>
+          <p class="feature-desc" data-i18n="feat7_desc">No installer needed. Run VOCIX directly from a USB drive or any folder — no admin rights, no registry entries, no traces left behind.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- OPEN SOURCE -->
+<section id="opensource">
+  <div class="opensource-inner">
+    <div class="action-burst" data-i18n="oss_burst">FREE &amp; <span>OPEN</span><br>SOURCE!</div>
+    <p class="opensource-sub" data-i18n="oss_sub">VOCIX is MIT-licensed and lives on GitHub. Fork it, extend it, contribute to it — or just use it. No strings attached.</p>
+    <div class="opensource-badges">
+      <div class="os-badge highlight">MIT License</div>
+      <div class="os-badge" data-i18n="oss_b1">No Account Required</div>
+      <div class="os-badge" data-i18n="oss_b2">No Subscription</div>
+      <div class="os-badge" data-i18n="oss_b3">No Telemetry</div>
+      <div class="os-badge" data-i18n="oss_b4">Community-Driven</div>
+    </div>
+    <a class="btn-github" href="https://github.com/RTF22/VOCIX" target="_blank">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+      RTF22/VOCIX on GitHub
+    </a>
+  </div>
+</section>
+
+<!-- DOWNLOAD -->
+<section id="download">
+  <div class="section-inner" style="text-align:center;">
+    <div class="section-label" data-i18n="dl_label">Get VOCIX</div>
+    <div class="section-title" style="margin-bottom:40px;" data-i18n="dl_title">Download</div>
+    <div class="download-box">
+      <div class="download-header">
+        <div class="download-title" data-i18n="dl_box_title">VOCIX for Windows</div>
+        <div class="download-version" data-i18n="dl_version">Latest release · MIT License · Free forever</div>
+      </div>
+      <div class="download-body">
+        <ul class="req-list">
+          <li><span class="req-dot"></span><span data-i18n="req1">Windows 10 or Windows 11</span></li>
+          <li><span class="req-dot"></span><span data-i18n="req2">Python 3.10+ (or use the standalone installer)</span></li>
+          <li><span class="req-dot"></span><span data-i18n="req3">Microphone — any USB or built-in mic works</span></li>
+          <li><span class="req-dot"></span><span data-i18n="req4">4 GB RAM recommended (for Whisper model)</span></li>
+          <li><span class="req-dot"></span><span data-i18n="req5">Claude API key (for Business &amp; Rage modes only)</span></li>
+        </ul>
+        <div class="download-ctas">
+          <a class="btn-primary" href="https://github.com/RTF22/VOCIX/releases" target="_blank">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span data-i18n="dl_btn">Download Latest Release</span>
+          </a>
+          <a class="btn-ghost" href="https://github.com/RTF22/VOCIX" target="_blank">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+            <span data-i18n="src_btn">View Source</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-wordmark"><span class="v">V</span><span class="o">O</span><span class="c">C</span><span class="i">I</span><span class="x">X</span></div>
+  <div class="footer-copy" data-i18n="footer_copy">© 2024 RTF22 · MIT License · Free &amp; Open Source</div>
+  <div class="footer-links">
+    <a class="footer-link" href="https://github.com/RTF22/VOCIX" target="_blank">GitHub</a>
+    <a class="footer-link" href="https://github.com/RTF22/VOCIX/releases" target="_blank" data-i18n="footer_releases">Releases</a>
+    <a class="footer-link" href="https://github.com/RTF22/VOCIX/blob/main/LICENSE" target="_blank">License</a>
+    <a class="footer-link" onclick="document.getElementById('impressum-modal').classList.add('open')" style="cursor:pointer;" data-i18n="footer_impressum">Impressum</a>
+  </div>
+</footer>
+
+<!-- IMPRESSUM MODAL -->
+<div id="impressum-modal" style="
+  display:none; position:fixed; inset:0; z-index:10000;
+  background:rgba(10,20,40,0.75); backdrop-filter:blur(4px);
+  align-items:center; justify-content:center; padding:24px;
+">
+  <div style="
+    background:var(--color-bg-light);
+    border:3px solid var(--color-ink);
+    border-radius:var(--radius-md);
+    box-shadow:8px 8px 0 var(--color-ink);
+    max-width:560px; width:100%;
+    max-height:90vh; overflow-y:auto;
+    padding:36px 40px;
+    position:relative;
+  ">
+    <!-- Close -->
+    <button onclick="document.getElementById('impressum-modal').classList.remove('open')" style="
+      position:absolute; top:16px; right:16px;
+      font-family:var(--font-mono); font-size:14px; font-weight:700;
+      background:var(--color-ink); color:var(--color-yellow-highlight);
+      border:none; border-radius:var(--radius-sm);
+      padding:4px 12px; cursor:pointer;
+      box-shadow:2px 2px 0 rgba(0,0,0,0.3);
+    ">✕</button>
+
+    <div style="font-family:var(--font-display);font-size:32px;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:24px;border-bottom:2px solid var(--color-ink);padding-bottom:12px;">Impressum</div>
+
+    <div style="font-family:var(--font-body);font-size:14px;line-height:1.7;color:var(--color-ink-soft);">
+      <p style="margin-bottom:6px;color:var(--fg-muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">Angaben gemäß § 5 TMG</p>
+      <p style="margin-bottom:20px;font-weight:700;color:var(--color-ink);">
+        Jens Fricke<br>
+        Untere Hainbachstr. 8<br>
+        35216 Biedenkopf
+      </p>
+
+      <p style="margin-bottom:6px;color:var(--fg-muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">Kontakt</p>
+      <p style="margin-bottom:20px;">E-Mail: <a href="mailto:aijourney22@gmail.com" style="color:var(--color-business);font-weight:700;">aijourney22@gmail.com</a></p>
+
+      <p style="margin-bottom:6px;color:var(--fg-muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</p>
+      <p style="margin-bottom:20px;">Jens Fricke, Untere Hainbachstr. 8, 35216 Biedenkopf</p>
+
+      <p style="margin-bottom:6px;color:var(--fg-muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">Haftung für Inhalte</p>
+      <p style="margin-bottom:20px;">Die Inhalte dieser Website wurden mit größter Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte kann jedoch keine Gewähr übernommen werden.</p>
+
+      <p style="margin-bottom:6px;color:var(--fg-muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">Haftung für Links</p>
+      <p style="margin-bottom:20px;">Diese Website enthält Links zu externen Websites Dritter, insbesondere zum Hosting-Dienst GitHub. Auf deren Inhalte habe ich keinen Einfluss und übernehme daher keine Gewähr für diese fremden Inhalte.</p>
+
+      <p style="margin-bottom:6px;color:var(--fg-muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">Urheberrecht und Open Source</p>
+      <p style="margin-bottom:20px;">Die auf dieser Website präsentierte Software „VOCIX" ist ein Open-Source-Projekt und wird über GitHub bereitgestellt. Es gelten die jeweiligen Lizenzbedingungen des Projekts. Inhalte dieser Website unterliegen – soweit nicht anders gekennzeichnet – dem deutschen Urheberrecht.</p>
+
+      <p style="margin-bottom:6px;color:var(--fg-muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">Hinweis zur Nutzung der Software</p>
+      <p>Die Nutzung der bereitgestellten Software erfolgt auf eigene Verantwortung. Es wird keine Haftung für Schäden übernommen, die aus der Nutzung der Software entstehen.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// Modal: click backdrop to close, show as flex
+const modal = document.getElementById('impressum-modal');
+modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
+const _origDisplay = modal.style.display;
+const observer = new MutationObserver(() => {
+  modal.style.display = modal.classList.contains('open') ? 'flex' : 'none';
+});
+observer.observe(modal, { attributes: true, attributeFilter: ['class'] });
+</script>
+
+<script>
+/* ── Translations ──────────────────────────────────────── */
+const T = {
+  en: {
+    nav_how: "How it Works", nav_modes: "Modes", nav_features: "Features",
+    nav_oss: "Open Source", nav_download: "Download",
+    hero_badge: "100% FREE &amp; OPEN SOURCE",
+    hero_desc: 'Local voice dictation for Windows with intelligent text processing. Push-to-talk with <strong>F8</strong>, Whisper STT offline — text inserted right at your cursor.',
+    hero_cta_dl: "Download for Windows", hero_cta_gh: "View on GitHub",
+    pill_offline: "100% Offline STT",
+    pill_portable: "Portable App",
+    how_label: "Getting Started", how_title: "How It Works",
+    how_sub: "Three steps. No cloud. No subscription. No nonsense.",
+    step1_title: "Hold to Record",
+    step1_desc: 'Hold <code>F8</code> from anywhere on Windows. The microphone activates instantly — VOCIX lives in the system tray and is always ready.',
+    step2_title: "Speak Naturally",
+    step2_desc: 'Talk normally. Release <code>F8</code> when done. Whisper transcribes your speech locally — nothing ever leaves your machine.',
+    step3_title: "Text Inserted",
+    step3_desc: 'Processed text appears right at your cursor, in any application — email, browser, IDE, document. No paste required.',
+    modes_label: "Intelligent Processing", modes_title: "Three Modes",
+    modes_sub: "Choose how your speech gets transformed before it hits the page. Switch modes instantly with keyboard shortcuts.",
+    mode_offline: "Fully Offline",
+    example_label: "Before → After",
+    clean_desc: 'Strip filler words and light corrections — preserves your meaning, removes "um", "uh", false starts. Runs 100% locally, zero latency.',
+    clean_before: '"So um, I wanted to, uh, say that the meeting is… is tomorrow."',
+    clean_after: '"The meeting is tomorrow."',
+    business_desc: 'Rewrites your speech into professional, formal language suitable for email, reports, or client communication. Powered by Claude.',
+    business_before: '"hey can you fix this bug it\'s been broken for ages"',
+    business_after: '"I wanted to flag an ongoing issue that requires attention at your earliest convenience."',
+    rage_desc: 'De-escalates aggressive or frustrated speech into polite, firm communication. Preserve meaning, remove heat. Powered by Claude.',
+    rage_before: '"This is absolutely unacceptable, I\'m furious about this delay!"',
+    rage_after: '"I\'d like to express my concern regarding the delay and request an update."',
+    feat_label: "Why VOCIX", feat_title: "Built Right",
+    feat_sub: "No cloud lock-in, no monthly fee, no account required. VOCIX respects your privacy and your wallet.",
+    feat1_title: "100% Offline Speech-to-Text",
+    feat1_desc: "Whisper runs fully on your machine. Your voice never leaves your computer. No API key, no internet, no privacy concerns.",
+    feat2_title: "Works in Any App",
+    feat2_desc: "Text is inserted at the cursor position in any Windows application — email clients, browsers, IDEs, Office apps, chat tools.",
+    feat3_title: "Multilingual",
+    feat3_desc: "Whisper supports dozens of languages. Optional translation to English. Full German/English UI included out of the box.",
+    feat4_title: "System Tray App",
+    feat4_desc: "Lives quietly in the tray. A colour-coded mic icon shows the current mode at a glance. Starts with Windows, stays out of your way.",
+    feat5_title: "Claude-Powered Intelligence",
+    feat5_desc: "Business and Rage modes use Anthropic's Claude for nuanced language transformation — not just autocorrect, real intelligence.",
+    feat6_title: "Lightweight &amp; Fast",
+    feat6_desc: "Python app with minimal footprint. Clean mode has zero added latency — transcribe and insert in under a second on modern hardware.",
+    feat7_title: "Portable App",
+    feat7_desc: "No installer needed. Run VOCIX directly from a USB drive or any folder — no admin rights, no registry entries, no traces left behind.",
+    oss_burst: 'FREE &amp; <span>OPEN</span><br>SOURCE!',
+    oss_sub: "VOCIX is MIT-licensed and lives on GitHub. Fork it, extend it, contribute to it — or just use it. No strings attached.",
+    oss_b1: "No Account Required", oss_b2: "No Subscription", oss_b3: "No Telemetry", oss_b4: "Community-Driven",
+    dl_label: "Get VOCIX", dl_title: "Download",
+    dl_box_title: "VOCIX for Windows",
+    dl_version: "Latest release · MIT License · Free forever",
+    req1: "Windows 10 or Windows 11",
+    req2: "Python 3.10+ (or use the standalone installer)",
+    req3: "Microphone — any USB or built-in mic works",
+    req4: "4 GB RAM recommended (for Whisper model)",
+    req5: "Claude API key (for Business &amp; Rage modes only)",
+    dl_btn: "Download Latest Release", src_btn: "View Source",
+    footer_copy: "© 2026 RTF22 · MIT License · Free &amp; Open Source",
+    footer_releases: "Releases",
+    footer_impressum: "Impressum",
+  },
+  de: {
+    nav_how: "So funktioniert's", nav_modes: "Modi", nav_features: "Features",
+    nav_oss: "Open Source", nav_download: "Download",
+    hero_badge: "100% KOSTENLOS &amp; OPEN SOURCE",
+    hero_desc: 'Lokale Spracheingabe für Windows mit intelligenter Textverarbeitung. Push-to-Talk mit <strong>F8</strong>, Whisper STT komplett offline — Dein gesprochener Text wird direkt an der Cursorposition eingefügt.',
+    hero_cta_dl: "Für Windows herunterladen", hero_cta_gh: "Auf GitHub ansehen",
+    pill_offline: "100% Offline STT",
+    pill_portable: "Portable App",
+    how_label: "Erste Schritte", how_title: "So funktioniert's",
+    how_sub: "Drei Schritte. Keine Cloud. Kein Abo. Kein Schnickschnack.",
+    step1_title: "Halten zum Aufnehmen",
+    step1_desc: '<code>F8</code> von überall in Windows gedrückt halten. Das Mikrofon aktiviert sich sofort — VOCIX läuft im System-Tray und ist immer bereit.',
+    step2_title: "Natürlich sprechen",
+    step2_desc: 'Einfach sprechen. <code>F8</code> loslassen, wenn fertig. Whisper transkribiert die Sprache lokal — nichts verlässt den eigenen Rechner.',
+    step3_title: "Text wird eingefügt",
+    step3_desc: 'Der verarbeitete Text erscheint direkt an der Cursorposition — in jeder Anwendung: E-Mail, Browser, IDE, Dokument. Kein Einfügen nötig.',
+    modes_label: "Intelligente Verarbeitung", modes_title: "Drei Modi",
+    modes_sub: "Wählen, wie Sprache vor dem Einfügen umgewandelt wird. Modi mit Tastenkürzel sofort wechseln.",
+    mode_offline: "Vollständig Offline",
+    example_label: "Vorher → Nachher",
+    clean_desc: 'Füllwörter entfernen und leichte Korrekturen — Bedeutung bleibt erhalten, "ähm", "also" und Versprecher werden gelöscht. Läuft 100% lokal, null Latenz.',
+    clean_before: '"Also ähm, ich wollte, äh, sagen dass das Meeting … morgen ist."',
+    clean_after: '"Das Meeting ist morgen."',
+    business_desc: 'Schreibt Sprache in professionelle, formelle Sprache um — geeignet für E-Mails, Berichte oder Kundenkommunikation. Powered by Claude.',
+    business_before: '"kannst du den bug mal fixen der nervt schon ewig"',
+    business_after: '"Ich möchte auf ein bestehendes Problem hinweisen, das baldmöglichst behoben werden sollte."',
+    rage_desc: 'Wandelt aggressive oder frustrierte Sprache in höfliche, bestimmte Kommunikation um. Bedeutung bleibt erhalten, der Ton wird sachlich. Powered by Claude.',
+    rage_before: '"Das ist absolut inakzeptabel, ich bin so wütend über diese Verzögerung!"',
+    rage_after: '"Ich möchte meine Bedenken bezüglich der Verzögerung äußern und um ein Update bitten."',
+    feat_label: "Warum VOCIX", feat_title: "Durchdacht gebaut",
+    feat_sub: "Kein Cloud-Abo, keine monatlichen Kosten, kein Account. VOCIX respektiert Privatsphäre und Budget.",
+    feat1_title: "100% Offline Sprach­erkennung",
+    feat1_desc: "Whisper läuft vollständig auf dem eigenen Rechner. Die Stimme verlässt den Computer nie. Kein API-Key, kein Internet, keine Datenschutzbedenken.",
+    feat2_title: "Funktioniert in jeder App",
+    feat2_desc: "Text wird an der Cursorposition in jeder Windows-Anwendung eingefügt — E-Mail, Browser, IDE, Office, Chat.",
+    feat3_title: "Mehrsprachig",
+    feat3_desc: "Whisper unterstützt Dutzende Sprachen. Optionale Übersetzung ins Englische. Deutsche und englische Oberfläche direkt dabei.",
+    feat4_title: "System-Tray-App",
+    feat4_desc: "Läuft leise im Tray. Ein farbcodiertes Mikrofon-Symbol zeigt den aktiven Modus auf einen Blick. Startet mit Windows, bleibt unauffällig.",
+    feat5_title: "Claude-gestützte KI",
+    feat5_desc: "Business- und Rage-Modus nutzen Anthropics Claude für nuancierte Sprachtransformation — keine einfache Autokorrektur, echte Intelligenz.",
+    feat6_title: "Leichtgewichtig &amp; Schnell",
+    feat6_desc: "Python-App mit minimalem Footprint. Clean-Modus hat null Zusatzlatenz — Transkription und Einfügen unter einer Sekunde auf moderner Hardware.",
+    feat7_title: "Portable App",
+    feat7_desc: "Kein Installer nötig. VOCIX direkt von einem USB-Stick oder einem beliebigen Ordner starten — keine Adminrechte, keine Registry-Einträge, keine Spuren.",
+    oss_burst: 'KOSTENLOS &amp; <span>OPEN</span><br>SOURCE!',
+    oss_sub: "VOCIX steht unter der MIT-Lizenz und lebt auf GitHub. Forken, erweitern, beitragen — oder einfach nutzen. Keine Bedingungen.",
+    oss_b1: "Kein Account nötig", oss_b2: "Kein Abo", oss_b3: "Kein Tracking", oss_b4: "Community-getrieben",
+    dl_label: "VOCIX holen", dl_title: "Download",
+    dl_box_title: "VOCIX für Windows",
+    dl_version: "Neueste Version · MIT-Lizenz · Kostenlos für immer",
+    req1: "Windows 10 oder Windows 11",
+    req2: "Python 3.10+ (oder den Standalone-Installer nutzen)",
+    req3: "Mikrofon — USB oder eingebaut, alles funktioniert",
+    req4: "4 GB RAM empfohlen (für das Whisper-Modell)",
+    req5: "Claude API-Key (nur für Business- &amp; Rage-Modus)",
+    dl_btn: "Neueste Version herunterladen", src_btn: "Quellcode ansehen",
+    footer_copy: "© 2026 RTF22 · MIT-Lizenz · Kostenlos &amp; Open Source",
+    footer_releases: "Versionen",
+    footer_impressum: "Impressum",
+  }
+};
+
+/* ── Language logic ────────────────────────────────────── */
+let currentLang = localStorage.getItem('vocix_lang') || 'en';
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('vocix_lang', lang);
+  document.documentElement.lang = lang;
+
+  const t = T[lang];
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (t[key] !== undefined) el.innerHTML = t[key];
+  });
+
+  document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+  document.getElementById('btn-de').classList.toggle('active', lang === 'de');
+}
+
+// Init
+setLang(currentLang);
+</script>
+</body>
+</html>

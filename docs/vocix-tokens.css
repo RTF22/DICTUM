@@ -1,0 +1,262 @@
+/* ============================================================
+   VOCIX Design System — Colors & Typography
+   Comic-book aesthetic: bold outlines, flat vivid fills,
+   halftone textures, Bangers display + Nunito body.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
+
+/* ── Base Color Tokens ─────────────────────────────────── */
+:root {
+  /* ── Brand / Logo colors (from Vocix1.jpg badge) ─────── */
+  --color-brand-cobalt:    #1a3d8f;   /* Deep cobalt blue — badge background */
+  --color-brand-cobalt-mid:#2255b8;   /* Mid cobalt — radial rays */
+  --color-brand-burst:     #f97316;   /* Orange explosion burst center */
+  --color-brand-gold:      #fbbf24;   /* Gold — V letter, stars, energy */
+  --color-brand-navy:      #0f172a;   /* Very dark navy — URL banner */
+
+  /* ── Wordmark letter colors ───────────────────────────── */
+  --color-letter-v:        #fbbf24;   /* V — gold/yellow */
+  --color-letter-o:        #e63329;   /* O — red */
+  --color-letter-c:        #3b82f6;   /* C — bright blue */
+  --color-letter-i:        #94a3b8;   /* I — silver */
+  --color-letter-x:        #94a3b8;   /* X — silver */
+
+  /* ── Tagline accent letters ───────────────────────────── */
+  --color-tagline-v:       #fbbf24;   /* Voice */
+  --color-tagline-c:       #3b82f6;   /* Capture */
+  --color-tagline-i:       #22c55e;   /* Intelligent */
+  --color-tagline-x:       #e63329;   /* eXpression */
+
+  /* Mode colours (from tray.py) */
+  --color-clean:           #2ecc71;
+  --color-clean-dark:      #27ae60;
+  --color-clean-light:     #a9f0ca;
+
+  --color-business:        #3498db;
+  --color-business-dark:   #2980b9;
+  --color-business-light:  #a8d4f5;
+
+  --color-rage:            #e74c3c;
+  --color-rage-dark:       #c0392b;
+  --color-rage-light:      #f5b4ae;
+
+  /* Status colours */
+  --color-processing:      #f39c12;
+  --color-processing-dark: #d68910;
+  --color-done:            var(--color-clean);
+  --color-error:           var(--color-rage);
+  --color-warning:         var(--color-processing);
+
+  /* Ink & surface */
+  --color-ink:             #1a1a2e;
+  --color-ink-soft:        #2c3e50;
+  --color-bg-light:        #fffef0;
+  --color-bg-cream:        #f5f0e8;
+  --color-panel:           #f5f0e8;
+  --color-bg-dark:         #1a3d8f;   /* Updated to brand cobalt */
+  --color-yellow-highlight:#fbbf24;   /* Updated to brand gold */
+  --color-white:           #ffffff;
+
+  /* ── Semantic Aliases ─────────────────────────────────── */
+  --fg-primary:            var(--color-ink);
+  --fg-secondary:          #4a5568;
+  --fg-muted:              #718096;
+  --fg-on-dark:            var(--color-white);
+  --fg-on-mode:            var(--color-white);
+
+  --bg-page:               var(--color-bg-light);
+  --bg-panel:              var(--color-panel);
+  --bg-dark:               var(--color-bg-dark);
+  --bg-overlay:            rgba(44, 62, 80, 0.85);
+
+  --border-ink:            var(--color-ink);
+  --border-width:          2.5px;
+  --border-width-thick:    3.5px;
+
+  /* ── Spacing Scale ────────────────────────────────────── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  24px;
+  --space-6:  32px;
+  --space-7:  48px;
+  --space-8:  64px;
+
+  /* ── Corner Radii ─────────────────────────────────────── */
+  --radius-sm:    4px;
+  --radius-md:    6px;
+  --radius-lg:    8px;
+  --radius-icon:  14px;
+  --radius-pill:  999px;
+
+  /* ── Comic Shadows (offset, no blur) ──────────────────── */
+  --shadow-sm:   2px 2px 0 var(--color-ink);
+  --shadow-md:   3px 3px 0 var(--color-ink);
+  --shadow-lg:   5px 5px 0 var(--color-ink);
+  --shadow-xl:   7px 7px 0 var(--color-ink);
+
+  /* ── Typography ───────────────────────────────────────── */
+  --font-display: 'Bangers', 'Impact', cursive;
+  --font-body:    'Nunito', 'Segoe UI', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', 'Consolas', monospace;
+
+  --font-size-xs:   11px;
+  --font-size-sm:   13px;
+  --font-size-base: 15px;
+  --font-size-md:   17px;
+  --font-size-lg:   20px;
+  --font-size-xl:   24px;
+  --font-size-2xl:  32px;
+  --font-size-3xl:  48px;
+  --font-size-4xl:  64px;
+
+  --leading-tight:  1.1;
+  --leading-snug:   1.3;
+  --leading-normal: 1.5;
+  --leading-loose:  1.8;
+
+  --tracking-display: 0.05em;
+  --tracking-wide:    0.08em;
+  --tracking-normal:  0;
+}
+
+/* ── Semantic Type Styles ──────────────────────────────── */
+
+h1, .h1 {
+  font-family: var(--font-display);
+  font-size: var(--font-size-4xl);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-display);
+  color: var(--fg-primary);
+  text-transform: uppercase;
+}
+
+h2, .h2 {
+  font-family: var(--font-display);
+  font-size: var(--font-size-3xl);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-display);
+  color: var(--fg-primary);
+  text-transform: uppercase;
+}
+
+h3, .h3 {
+  font-family: var(--font-display);
+  font-size: var(--font-size-2xl);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-display);
+  color: var(--fg-primary);
+}
+
+h4, .h4 {
+  font-family: var(--font-body);
+  font-size: var(--font-size-lg);
+  font-weight: 800;
+  line-height: var(--leading-snug);
+  color: var(--fg-primary);
+}
+
+p, .body {
+  font-family: var(--font-body);
+  font-size: var(--font-size-base);
+  line-height: var(--leading-normal);
+  color: var(--fg-primary);
+}
+
+.body-sm {
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  line-height: var(--leading-normal);
+  color: var(--fg-secondary);
+}
+
+.label {
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+
+code, .mono {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  background: var(--bg-panel);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-ink);
+}
+
+/* ── Comic Card ───────────────────────────────────────── */
+.comic-card {
+  background: var(--bg-panel);
+  border: var(--border-width-thick) solid var(--border-ink);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-4);
+}
+
+.comic-card:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: var(--shadow-lg);
+}
+
+.comic-card:active {
+  transform: translate(2px, 2px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Mode Badge ───────────────────────────────────────── */
+.badge-clean    { background: var(--color-clean);    color: var(--color-white); }
+.badge-business { background: var(--color-business); color: var(--color-white); }
+.badge-rage     { background: var(--color-rage);     color: var(--color-white); }
+
+.mode-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--font-size-md);
+  letter-spacing: var(--tracking-display);
+  padding: var(--space-1) var(--space-3);
+  border: var(--border-width) solid var(--border-ink);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Status Overlay ───────────────────────────────────── */
+.status-overlay {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-body);
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--color-white);
+  background: var(--color-bg-dark);
+  padding: 8px 16px;
+  border-radius: var(--radius-lg);
+  border: var(--border-width) solid var(--border-ink);
+  box-shadow: var(--shadow-md);
+}
+
+.status-recording  { background: var(--color-rage); }
+.status-processing { background: var(--color-processing); }
+.status-done       { background: var(--color-clean); }
+.status-error      { background: var(--color-rage); }
+
+/* ── Halftone background texture ─────────────────────── */
+.halftone-bg {
+  background-color: var(--bg-page);
+  background-image: radial-gradient(circle, var(--color-ink) 1px, transparent 1px);
+  background-size: 16px 16px;
+  background-position: 0 0;
+  opacity: 1;
+}
+
+/* ── Utility ──────────────────────────────────────────── */
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg-page); color: var(--fg-primary); font-family: var(--font-body); }
