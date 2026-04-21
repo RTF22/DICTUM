@@ -1,6 +1,7 @@
 import logging
 import threading
 import tkinter as tk
+import webbrowser
 from typing import Callable
 
 from vocix.config import Config
@@ -157,6 +158,69 @@ class StatusOverlay:
                 self._root.after(delay_ms, self.hide)
 
         self._schedule(_hide_later)
+
+    def show_about(
+        self,
+        title: str,
+        version: str,
+        tagline: str,
+        description: str,
+        url: str,
+    ) -> None:
+        """About-Dialog als Toplevel-Fenster mit anklickbarem URL-Label.
+
+        Läuft in der Tk-Mainloop des Overlay-Threads — zuverlässiger als
+        Win32-MessageBox/TaskDialog aus der pystray-Icon-Thread-Umgebung,
+        wo die Dialoge auf manchen Setups nicht auf Klicks reagierten.
+        """
+        def _open():
+            if self._root is None:
+                return
+            win = tk.Toplevel(self._root)
+            win.title(title)
+            win.attributes("-topmost", True)
+            win.configure(bg="#2c3e50", padx=28, pady=22)
+            win.resizable(False, False)
+
+            tk.Label(
+                win, text=version, font=("Segoe UI", 14, "bold"),
+                fg="white", bg="#2c3e50",
+            ).pack(anchor="w")
+            tk.Label(
+                win, text=tagline, font=("Segoe UI", 10, "italic"),
+                fg="#bdc3c7", bg="#2c3e50",
+            ).pack(anchor="w", pady=(0, 14))
+            tk.Label(
+                win, text=description, font=("Segoe UI", 10),
+                fg="white", bg="#2c3e50", justify="left",
+            ).pack(anchor="w")
+
+            link = tk.Label(
+                win, text=url, font=("Segoe UI", 10, "underline"),
+                fg="#3498db", bg="#2c3e50", cursor="hand2",
+            )
+            link.pack(anchor="w", pady=(14, 16))
+            link.bind("<Button-1>", lambda _e: webbrowser.open(url))
+
+            tk.Button(
+                win, text="OK", width=12, command=win.destroy,
+                font=("Segoe UI", 10),
+            ).pack(anchor="e")
+
+            win.bind("<Escape>", lambda _e: win.destroy())
+            win.bind("<Return>", lambda _e: win.destroy())
+            win.protocol("WM_DELETE_WINDOW", win.destroy)
+
+            win.update_idletasks()
+            w = win.winfo_width()
+            h = win.winfo_height()
+            sw = win.winfo_screenwidth()
+            sh = win.winfo_screenheight()
+            win.geometry(f"+{(sw - w) // 2}+{(sh - h) // 2}")
+            win.focus_force()
+            win.lift()
+
+        self._schedule(_open)
 
     def destroy(self) -> None:
         def _quit():

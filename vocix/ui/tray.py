@@ -16,8 +16,6 @@ from vocix.snippets import SnippetExpander
 from vocix.stats import Stats
 
 logger = logging.getLogger(__name__)
-_HOMEPAGE_URL = "https://vocix.de"
-
 _MODE_COLORS = {
     "clean": (46, 204, 113),      # Grün
     "business": (52, 152, 219),   # Blau
@@ -99,6 +97,7 @@ class TrayApp:
         wakeword_available: bool = False,
         wakeword_enabled: bool = False,
         on_wakeword_toggle: Callable[[bool], None] | None = None,
+        on_show_about: Callable[[], None] | None = None,
     ):
         self._current_mode = current_mode
         self._current_language = current_language or get_language()
@@ -115,6 +114,7 @@ class TrayApp:
         self._wakeword_available = wakeword_available
         self._wakeword_enabled = wakeword_enabled
         self._on_wakeword_toggle = on_wakeword_toggle
+        self._on_show_about = on_show_about
         self._icon: Icon | None = None
         self._thread: threading.Thread | None = None
         self._update_info: updater.UpdateInfo | None = None
@@ -322,25 +322,14 @@ class TrayApp:
         except Exception as e:
             logger.warning("Toast-Benachrichtigung fehlgeschlagen: %s", e)
 
-    @staticmethod
-    def _show_about() -> None:
-        """About-Dialog mit Versionsinfo und anklickbarer Homepage-URL.
-
-        Nutzt TaskDialogIndirect (comctl32 v6) für den Hyperlink — das alte
-        Yes/No-MessageBox-Layout führte bei manchen Setups dazu, dass der
-        Dialog auf Klicks gar nicht mehr reagierte. Jetzt nur ein OK-Button
-        plus inline-anklickbarer Link, der den Standardbrowser öffnet.
+    def _show_about(self) -> None:
+        """Delegiert an den App-Callback, der den Dialog im Overlay-Tk-Thread
+        rendert. Der vorherige Win32-Weg (MessageBox / TaskDialogIndirect)
+        reagierte aus der pystray-Thread-Umgebung auf manchen Setups nicht
+        zuverlässig auf Klicks.
         """
-        from vocix.ui import native_dialog
-
-        instruction = f"VOCIX v{__version__}"
-        body = (
-            f"{t('about.tagline')}\n\n"
-            f"{t('about.description')}"
-        )
-        native_dialog.show_info_with_url(
-            t("about.title"), instruction, body, _HOMEPAGE_URL
-        )
+        if self._on_show_about is not None:
+            self._on_show_about()
 
     def _toggle_translate(self) -> None:
         self._translate_to_english = not self._translate_to_english

@@ -124,6 +124,7 @@ class VocixApp:
             wakeword_available=wakeword.is_available(),
             wakeword_enabled=self._wakeword_enabled,
             on_wakeword_toggle=self._set_wakeword_enabled,
+            on_show_about=self._show_about,
         )
 
         self._overlay.show_temporary(t("overlay.ready"), "done")
@@ -296,6 +297,16 @@ class VocixApp:
         # Main-Thread aus run() entlassen. sys.exit() hier wirkt nur im
         # Tray-Thread (Daemon) und würde den Prozess nicht beenden.
         self._quit_event.set()
+
+    def _show_about(self) -> None:
+        """Tray-Callback: About-Dialog im Overlay-Tk-Thread öffnen."""
+        self._overlay.show_about(
+            title=t("about.title"),
+            version=f"VOCIX v{__version__}",
+            tagline=t("about.tagline"),
+            description=t("about.description"),
+            url="https://vocix.de",
+        )
 
     def _set_wakeword_enabled(self, enabled: bool) -> None:
         """Tray-Toggle: Wake-Word ein/aus. Persistiert in state.json."""
