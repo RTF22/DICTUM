@@ -16,7 +16,7 @@ from vocix.snippets import SnippetExpander
 from vocix.stats import Stats
 
 logger = logging.getLogger(__name__)
-_REPO_URL = "https://github.com/RTF22/VOCIX"
+_HOMEPAGE_URL = "https://vocix.de"
 
 _MODE_COLORS = {
     "clean": (46, 204, 113),      # Grün
@@ -324,22 +324,23 @@ class TrayApp:
 
     @staticmethod
     def _show_about() -> None:
-        """About-Dialog mit Versionsinfo und Repo-Link.
+        """About-Dialog mit Versionsinfo und anklickbarer Homepage-URL.
 
-        Nutzt native Win32-MessageBox (via `native_dialog`) statt tkinter —
-        vermeidet einen zweiten Tk-Root neben dem StatusOverlay (siehe #13).
+        Nutzt TaskDialogIndirect (comctl32 v6) für den Hyperlink — das alte
+        Yes/No-MessageBox-Layout führte bei manchen Setups dazu, dass der
+        Dialog auf Klicks gar nicht mehr reagierte. Jetzt nur ein OK-Button
+        plus inline-anklickbarer Link, der den Standardbrowser öffnet.
         """
         from vocix.ui import native_dialog
 
+        instruction = f"VOCIX v{__version__}"
         body = (
-            f"VOCIX v{__version__}\n"
             f"{t('about.tagline')}\n\n"
-            f"{t('about.description')}\n\n"
-            f"{t('about.repository')}\n{_REPO_URL}\n\n"
-            f"{t('about.open_browser')}"
+            f"{t('about.description')}"
         )
-        if native_dialog.show_info_with_link(t("about.title"), body):
-            webbrowser.open(_REPO_URL)
+        native_dialog.show_info_with_url(
+            t("about.title"), instruction, body, _HOMEPAGE_URL
+        )
 
     def _toggle_translate(self) -> None:
         self._translate_to_english = not self._translate_to_english
