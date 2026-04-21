@@ -24,6 +24,7 @@
   "tray.history_clear": "Verlauf löschen",
   "tray.stats": "Statistik…",
   "tray.snippets_edit": "Snippets bearbeiten…",
+  "tray.wakeword": "Wake-Word (\"Hey Jarvis\")",
 
   "stats.title": "VOCIX — Statistik",
   "stats.today": "Heute",
@@ -40,6 +41,8 @@
   "toast.translate_off": "Übersetzung deaktiviert",
   "toast.update_downloading": "Lade Update {version} herunter…",
   "toast.update_failed": "Update fehlgeschlagen — siehe %TEMP%\\vocix-update.log",
+  "toast.wakeword_on": "Wake-Word aktiv — sag \"Hey Jarvis\"",
+  "toast.wakeword_off": "Wake-Word deaktiviert",
 
   "about.title": "VOCIX — Info",
   "about.tagline": "Voice Capture & Intelligent eXpression",
@@ -59,6 +62,9 @@
   "overlay.inserted": "Eingefügt",
   "overlay.error": "Fehler!",
   "overlay.translate_badge": "→ EN",
+  "overlay.wakeword_on": "Wake-Word aktiv",
+  "overlay.wakeword_off": "Wake-Word aus",
+  "overlay.wakeword_unavailable": "Wake-Word nicht verfügbar (openwakeword fehlt)",
 
   "error.mic_unavailable": "Mikrofon nicht verfügbar. Bitte prüfe die Audioeinstellungen.",
   "error.clipboard_nontext": "Zwischenablage enthält Nicht-Text-Inhalt (z.B. Bild oder Datei). Dieser wird durch die Einfügung überschrieben und nicht wiederhergestellt.",

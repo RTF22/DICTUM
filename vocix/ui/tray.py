@@ -96,6 +96,9 @@ class TrayApp:
         snippets: SnippetExpander | None = None,
         on_history_reinject: Callable[[str], None] | None = None,
         on_install_update: Callable[["updater.UpdateInfo"], None] | None = None,
+        wakeword_available: bool = False,
+        wakeword_enabled: bool = False,
+        on_wakeword_toggle: Callable[[bool], None] | None = None,
     ):
         self._current_mode = current_mode
         self._current_language = current_language or get_language()
@@ -109,6 +112,9 @@ class TrayApp:
         self._snippets = snippets
         self._on_history_reinject = on_history_reinject
         self._on_install_update = on_install_update
+        self._wakeword_available = wakeword_available
+        self._wakeword_enabled = wakeword_enabled
+        self._on_wakeword_toggle = on_wakeword_toggle
         self._icon: Icon | None = None
         self._thread: threading.Thread | None = None
         self._update_info: updater.UpdateInfo | None = None
@@ -147,6 +153,12 @@ class TrayApp:
             self._toggle_translate,
             checked=lambda item: self._translate_to_english,
         ))
+        if self._wakeword_available:
+            items.append(MenuItem(
+                t("tray.wakeword"),
+                self._toggle_wakeword,
+                checked=lambda item: self._wakeword_enabled,
+            ))
         items.append(Menu.SEPARATOR)
 
         if self._history is not None:
@@ -337,6 +349,19 @@ class TrayApp:
         toast_key = "toast.translate_on" if self._translate_to_english else "toast.translate_off"
         self._notify("VOCIX", t(toast_key))
         logger.info("Translate-to-English: %s", self._translate_to_english)
+
+    def _toggle_wakeword(self) -> None:
+        self._wakeword_enabled = not self._wakeword_enabled
+        if self._on_wakeword_toggle is not None:
+            self._on_wakeword_toggle(self._wakeword_enabled)
+        self._update_icon()
+        toast_key = "toast.wakeword_on" if self._wakeword_enabled else "toast.wakeword_off"
+        self._notify("VOCIX", t(toast_key))
+        logger.info("Wake-Word: %s", self._wakeword_enabled)
+
+    def update_wakeword(self, enabled: bool) -> None:
+        self._wakeword_enabled = enabled
+        self._update_icon()
 
     def update_translate(self, enabled: bool) -> None:
         self._translate_to_english = enabled

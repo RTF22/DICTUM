@@ -8,6 +8,7 @@ import logging
 import logging.handlers
 import sys
 import threading
+import time
 
 import keyboard
 
@@ -19,6 +20,7 @@ from vocix.i18n import t
 from vocix.output.injector import TextInjector
 from vocix.snippets import SnippetExpander
 from vocix.stats import Stats
+from vocix import wakeword
 from vocix.processing.base import TextProcessor
 from vocix.processing.business import BusinessProcessor
 from vocix.processing.clean import CleanProcessor
@@ -95,6 +97,8 @@ class VocixApp:
         self._history = History()
         self._stats = Stats()
         self._snippets = SnippetExpander()
+        self._wakeword: wakeword.WakeWordListener | None = None
+        self._wakeword_enabled = bool(load_state().get("wakeword_enabled", False))
 
         # Prozessoren
         self._processors: dict[str, TextProcessor] = {
@@ -117,6 +121,9 @@ class VocixApp:
             snippets=self._snippets,
             on_history_reinject=self._reinject_text,
             on_install_update=self._install_update,
+            wakeword_available=wakeword.is_available(),
+            wakeword_enabled=self._wakeword_enabled,
+            on_wakeword_toggle=self._set_wakeword_enabled,
         )
 
         self._overlay.show_temporary(t("overlay.ready"), "done")
@@ -274,6 +281,8 @@ class VocixApp:
     def _quit(self) -> None:
         logger.info("VOCIX wird beendet...")
         self._running = False
+        if self._wakeword is not None:
+            self._wakeword.stop()
         keyboard.unhook_all()
         try:
             self._tray.stop()
@@ -287,6 +296,89 @@ class VocixApp:
         # Main-Thread aus run() entlassen. sys.exit() hier wirkt nur im
         # Tray-Thread (Daemon) und würde den Prozess nicht beenden.
         self._quit_event.set()
+
+    def _set_wakeword_enabled(self, enabled: bool) -> None:
+        """Tray-Toggle: Wake-Word ein/aus. Persistiert in state.json."""
+        self._wakeword_enabled = enabled
+        with update_state() as state:
+            state["wakeword_enabled"] = enabled
+        if enabled:
+            self._start_wakeword()
+        else:
+            self._stop_wakeword()
+
+    def _start_wakeword(self) -> None:
+        if not wakeword.is_available():
+            logger.warning("Wake-Word angefordert, aber openwakeword fehlt")
+            self._overlay.show_temporary(t("overlay.wakeword_unavailable"), "error")
+            return
+        if self._wakeword is None:
+            self._wakeword = wakeword.WakeWordListener(on_detect=self._on_wakeword_triggered)
+        try:
+            self._wakeword.start()
+            self._overlay.show_temporary(t("overlay.wakeword_on"), "done")
+        except Exception as e:
+            logger.error("Wake-Word-Start fehlgeschlagen: %s", e, exc_info=True)
+            self._overlay.show_temporary(t("overlay.error"), "error")
+
+    def _stop_wakeword(self) -> None:
+        if self._wakeword is not None:
+            self._wakeword.stop()
+        self._overlay.show_temporary(t("overlay.wakeword_off"), "done")
+
+    def _on_wakeword_triggered(self) -> None:
+        """Vom Listener-Thread aufgerufen, sobald das Wake-Word fällt.
+
+        Startet die Aufnahme wie ein PTT-Press und überwacht den RMS-Pegel —
+        nach `silence_seconds` ohne Signal wird die Pipeline ausgelöst.
+        """
+        if self._recorder.is_recording:
+            return
+        with self._state_lock:
+            if self._processing:
+                return
+        self._on_record_start()
+        threading.Thread(
+            target=self._wakeword_silence_watch,
+            args=(self._current_mode,),
+            name="WakeWordSilenceWatch",
+            daemon=True,
+        ).start()
+
+    def _wakeword_silence_watch(self, mode: str) -> None:
+        """Stoppt die Aufnahme automatisch nach Stille — Pendant zum PTT-Release.
+
+        - `min_speech_seconds` muss erst Sprache erkannt worden sein, bevor
+          Stille überhaupt zählt (sonst stoppt es noch vor dem ersten Wort).
+        - `silence_seconds` ununterbrochene Stille = Pipeline auslösen.
+        - `max_seconds` als Sicherheitsnetz, falls Stille-Erkennung versagt.
+        """
+        poll_interval = 0.1
+        min_speech_seconds = 0.6
+        silence_seconds = 1.5
+        max_seconds = 30.0
+
+        start = time.monotonic()
+        speech_started = False
+        silence_run = 0.0
+
+        while self._recorder.is_recording:
+            time.sleep(poll_interval)
+            elapsed = time.monotonic() - start
+            level = self._recorder.current_level
+            if level >= self._config.silence_threshold:
+                speech_started = True
+                silence_run = 0.0
+            elif speech_started:
+                silence_run += poll_interval
+                if silence_run >= silence_seconds:
+                    break
+            if elapsed >= max_seconds:
+                logger.info("Wake-Word-Aufnahme: max_seconds erreicht")
+                break
+
+        if self._recorder.is_recording:
+            self._on_record_stop()
 
     def _install_update(self, info: updater.UpdateInfo) -> None:
         """Tray-Callback: ZIP herunterladen, verifizieren, Helper-Batch starten,
@@ -314,6 +406,8 @@ class VocixApp:
         self._tray.start()
         self._register_hotkeys()
         self._start_update_check()
+        if self._wakeword_enabled and wakeword.is_available():
+            self._start_wakeword()
 
         logger.info("VOCIX läuft. Zum Beenden: Tray-Icon → Beenden")
         try:

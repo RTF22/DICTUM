@@ -24,6 +24,7 @@
   "tray.history_clear": "Clear history",
   "tray.stats": "Statistics…",
   "tray.snippets_edit": "Edit snippets…",
+  "tray.wakeword": "Wake word (\"Hey Jarvis\")",
 
   "stats.title": "VOCIX — Statistics",
   "stats.today": "Today",
@@ -40,6 +41,8 @@
   "toast.translate_off": "Translate mode off",
   "toast.update_downloading": "Downloading update {version}…",
   "toast.update_failed": "Update failed — see %TEMP%\\vocix-update.log",
+  "toast.wakeword_on": "Wake word active — say \"Hey Jarvis\"",
+  "toast.wakeword_off": "Wake word disabled",
 
   "about.title": "VOCIX — About",
   "about.tagline": "Voice Capture & Intelligent eXpression",
@@ -59,6 +62,9 @@
   "overlay.inserted": "Inserted",
   "overlay.error": "Error!",
   "overlay.translate_badge": "→ EN",
+  "overlay.wakeword_on": "Wake word active",
+  "overlay.wakeword_off": "Wake word off",
+  "overlay.wakeword_unavailable": "Wake word unavailable (openwakeword missing)",
 
   "error.mic_unavailable": "Microphone unavailable. Please check your audio settings.",
   "error.clipboard_nontext": "Clipboard contains non-text content (e.g. an image or file). It will be overwritten by the insertion and cannot be restored.",
