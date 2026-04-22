@@ -44,16 +44,29 @@ Local voice dictation app for Windows 11 with a global hotkey. Capture speech, t
 
 ## Installation
 
-### Option A: Portable .exe (recommended)
+### Option A: winget
 
-1. [Download a release](https://github.com/RTF22/VOCIX/releases) or build it yourself (see below)
+```powershell
+winget install RTF22.VOCIX
+```
+
+### Option B: Scoop
+
+```powershell
+scoop bucket add vocix https://github.com/RTF22/scoop-vocix
+scoop install vocix
+```
+
+### Option C: Portable .exe
+
+1. [Download a release](https://github.com/RTF22/VOCIX/releases)
 2. Extract the folder anywhere
 3. Optional: rename `.env.example` to `.env` and fill in your API key
 4. Launch `VOCIX.exe`
 
 The Whisper model (~500 MB) is downloaded automatically into the `models/` subfolder on first start.
 
-### Option B: From source
+### Option D: From source
 
 ```bash
 git clone https://github.com/RTF22/VOCIX.git

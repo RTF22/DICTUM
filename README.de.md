@@ -43,16 +43,29 @@ Lokale Sprachdiktion-App für Windows 11 mit globalem Hotkey. Sprache aufnehmen,
 
 ## Installation
 
-### Option A: Portable .exe (empfohlen)
+### Option A: winget
 
-1. [Release herunterladen](https://github.com/RTF22/VOCIX/releases) oder selbst bauen (siehe unten)
+```powershell
+winget install RTF22.VOCIX
+```
+
+### Option B: Scoop
+
+```powershell
+scoop bucket add vocix https://github.com/RTF22/scoop-vocix
+scoop install vocix
+```
+
+### Option C: Portable .exe
+
+1. [Release herunterladen](https://github.com/RTF22/VOCIX/releases)
 2. Ordner an beliebigen Ort entpacken
 3. Optional: `.env.example` zu `.env` umbenennen und API-Key eintragen
 4. `VOCIX.exe` starten
 
 Das Whisper-Modell (~500 MB) wird beim ersten Start automatisch in den `models/`-Unterordner heruntergeladen.
 
-### Option B: Aus Quellcode
+### Option D: Aus Quellcode
 
 ```bash
 git clone https://github.com/RTF22/VOCIX.git
