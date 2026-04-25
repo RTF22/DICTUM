@@ -262,11 +262,12 @@ footer { background: var(--color-brand-navy); border-top: 3px solid var(--color-
       <div class="hero-pills">
         <span class="pill">Windows 10/11</span>
         <span class="pill" data-i18n="pill_portable">Portable App</span>
+        <span class="pill" data-i18n="pill_gpu">GPU Accelerated</span>
         <span class="pill" data-i18n="pill_offline">100% Offline STT</span>
         <span class="pill">MIT License</span>
         <span class="pill">Whisper AI</span>
         <span class="pill">Claude-powered</span>
-        <span class="pill">Pause Push-to-Talk</span>
+        <span class="pill" data-i18n="pill_ptt">Pause Push-to-Talk</span>
       </div>
     </div>
   </div>
@@ -380,7 +381,7 @@ footer { background: var(--color-brand-navy); border-top: 3px solid var(--color-
         <div class="feature-icon-box" style="background: var(--color-clean-light);">🔒</div>
         <div>
           <div class="feature-title" data-i18n="feat1_title">100% Offline Speech-to-Text</div>
-          <p class="feature-desc" data-i18n="feat1_desc">Whisper runs fully on your machine. Your voice never leaves your computer. No API key, no internet, no privacy concerns.</p>
+          <p class="feature-desc" data-i18n="feat1_desc">faster-whisper runs fully on your machine. Your voice never leaves your computer. No API key, no internet, no privacy concerns. Model downloads once on first launch.</p>
         </div>
       </div>
       <div class="feature-card">
@@ -393,15 +394,15 @@ footer { background: var(--color-brand-navy); border-top: 3px solid var(--color-
       <div class="feature-card">
         <div class="feature-icon-box" style="background: var(--color-business-light);">🌍</div>
         <div>
-          <div class="feature-title" data-i18n="feat3_title">Multilingual</div>
-          <p class="feature-desc" data-i18n="feat3_desc">Whisper supports dozens of languages. Optional translation to English. Full German/English UI included out of the box.</p>
+          <div class="feature-title" data-i18n="feat3_title">Multilingual + Offline Translation</div>
+          <p class="feature-desc" data-i18n="feat3_desc">Speak any of ~50 Whisper-supported languages. Optional one-click offline translation to English — no API key needed. Full DE/EN UI switchable at runtime.</p>
         </div>
       </div>
       <div class="feature-card">
-        <div class="feature-icon-box" style="background: var(--color-rage-light);">🗂️</div>
+        <div class="feature-icon-box" style="background: var(--color-rage-light);">📋</div>
         <div>
-          <div class="feature-title" data-i18n="feat4_title">System Tray App</div>
-          <p class="feature-desc" data-i18n="feat4_desc">Lives quietly in the tray. A colour-coded mic icon shows the current mode at a glance. Starts with Windows, stays out of your way.</p>
+          <div class="feature-title" data-i18n="feat4_title">History &amp; Snippet Expansion</div>
+          <p class="feature-desc" data-i18n="feat4_desc">The last 20 dictations are saved in the tray — click to re-insert. Define your own shortcuts like /sig or /adr that expand to full text before insertion.</p>
         </div>
       </div>
       <div class="feature-card">
@@ -412,17 +413,17 @@ footer { background: var(--color-brand-navy); border-top: 3px solid var(--color-
         </div>
       </div>
       <div class="feature-card">
-        <div class="feature-icon-box" style="background: var(--color-panel);">🔧</div>
+        <div class="feature-icon-box" style="background: #fef9c3;">⚡</div>
         <div>
-          <div class="feature-title" data-i18n="feat6_title">Lightweight &amp; Fast</div>
-          <p class="feature-desc" data-i18n="feat6_desc">Python app with minimal footprint. Clean mode has zero added latency — transcribe and insert in under a second on modern hardware.</p>
+          <div class="feature-title" data-i18n="feat6_title">GPU Acceleration &amp; Model Choice</div>
+          <p class="feature-desc" data-i18n="feat6_desc">Choose your Whisper model (tiny → large-v3-turbo). GPU mode auto-detects CUDA — or force CPU/GPU via config. Speed vs. accuracy, your call.</p>
         </div>
       </div>
       <div class="feature-card">
         <div class="feature-icon-box" style="background: #d1fae5;">💼</div>
         <div>
-          <div class="feature-title" data-i18n="feat7_title">Portable App</div>
-          <p class="feature-desc" data-i18n="feat7_desc">No installer needed. Run VOCIX directly from a USB drive or any folder — no admin rights, no registry entries, no traces left behind.</p>
+          <div class="feature-title" data-i18n="feat7_title">Portable, winget &amp; Scoop</div>
+          <p class="feature-desc" data-i18n="feat7_desc">Install via <code>winget install RTF22.VOCIX</code>, Scoop, or just unzip and run — no admin rights, no registry. Auto-updates from the tray with SHA256 verification.</p>
         </div>
       </div>
     </div>
@@ -461,10 +462,8 @@ footer { background: var(--color-brand-navy); border-top: 3px solid var(--color-
       <div class="download-body">
         <ul class="req-list">
           <li><span class="req-dot"></span><span data-i18n="req1">Windows 10 or Windows 11</span></li>
-          <li><span class="req-dot"></span><span data-i18n="req2">Python 3.10+ (or use the standalone installer)</span></li>
-          <li><span class="req-dot"></span><span data-i18n="req3">Microphone — any USB or built-in mic works</span></li>
-          <li><span class="req-dot"></span><span data-i18n="req4">4 GB RAM recommended (for Whisper model)</span></li>
-          <li><span class="req-dot"></span><span data-i18n="req5">Claude API key (for Business &amp; Rage modes only)</span></li>
+          <li><span class="req-dot"></span><span data-i18n="req2">Microphone — any USB or built-in mic works</span></li>
+          <li><span class="req-dot"></span><span data-i18n="req3">Optional: Claude API key (for Business &amp; Rage modes)</span></li>
         </ul>
         <div class="download-ctas">
           <a class="btn-primary" href="https://github.com/RTF22/VOCIX/releases" target="_blank">
@@ -572,6 +571,8 @@ const T = {
     hero_cta_dl: "Download for Windows", hero_cta_gh: "View on GitHub",
     pill_offline: "100% Offline STT",
     pill_portable: "Portable App",
+    pill_gpu: "GPU Accelerated",
+    pill_ptt: "Pause Push-to-Talk",
     how_label: "Getting Started", how_title: "How It Works",
     how_sub: "Three steps. No cloud. No subscription. No nonsense.",
     step1_title: "Hold to Record",
@@ -596,19 +597,19 @@ const T = {
     feat_label: "Why VOCIX", feat_title: "Built Right",
     feat_sub: "No cloud lock-in, no monthly fee, no account required. VOCIX respects your privacy and your wallet.",
     feat1_title: "100% Offline Speech-to-Text",
-    feat1_desc: "Whisper runs fully on your machine. Your voice never leaves your computer. No API key, no internet, no privacy concerns.",
+    feat1_desc: "faster-whisper runs fully on your machine. Your voice never leaves your computer. No API key, no internet, no privacy concerns. Model downloads once on first launch.",
     feat2_title: "Works in Any App",
     feat2_desc: "Text is inserted at the cursor position in any Windows application — email clients, browsers, IDEs, Office apps, chat tools.",
-    feat3_title: "Multilingual",
-    feat3_desc: "Whisper supports dozens of languages. Optional translation to English. Full German/English UI included out of the box.",
-    feat4_title: "System Tray App",
-    feat4_desc: "Lives quietly in the tray. A colour-coded mic icon shows the current mode at a glance. Starts with Windows, stays out of your way.",
+    feat3_title: "Multilingual + Offline Translation",
+    feat3_desc: "Speak any of ~50 Whisper-supported languages. Optional one-click offline translation to English — no API key needed. Full DE/EN UI switchable at runtime.",
+    feat4_title: "History &amp; Snippet Expansion",
+    feat4_desc: "The last 20 dictations are saved in the tray — click to re-insert. Define your own shortcuts like /sig or /adr that expand to full text before insertion.",
     feat5_title: "Claude-Powered Intelligence",
     feat5_desc: "Business and Rage modes use Anthropic's Claude for nuanced language transformation — not just autocorrect, real intelligence.",
-    feat6_title: "Lightweight &amp; Fast",
-    feat6_desc: "Python app with minimal footprint. Clean mode has zero added latency — transcribe and insert in under a second on modern hardware.",
-    feat7_title: "Portable App",
-    feat7_desc: "No installer needed. Run VOCIX directly from a USB drive or any folder — no admin rights, no registry entries, no traces left behind.",
+    feat6_title: "GPU Acceleration &amp; Model Choice",
+    feat6_desc: "Choose your Whisper model (tiny → large-v3-turbo). GPU mode auto-detects CUDA — or force CPU/GPU via config. Speed vs. accuracy, your call.",
+    feat7_title: "Portable, winget &amp; Scoop",
+    feat7_desc: "Install via winget install RTF22.VOCIX, Scoop, or just unzip and run — no admin rights, no registry. Auto-updates from the tray with SHA256 verification.",
     oss_burst: 'FREE &amp; <span>OPEN</span><br>SOURCE!',
     oss_sub: "VOCIX is MIT-licensed and lives on GitHub. Fork it, extend it, contribute to it — or just use it. No strings attached.",
     oss_b1: "No Account Required", oss_b2: "No Subscription", oss_b3: "No Telemetry", oss_b4: "Community-Driven",
@@ -616,10 +617,9 @@ const T = {
     dl_box_title: "VOCIX for Windows",
     dl_version: "Latest release · MIT License · Free forever",
     req1: "Windows 10 or Windows 11",
-    req2: "Python 3.10+ (or use the standalone installer)",
-    req3: "Microphone — any USB or built-in mic works",
-    req4: "4 GB RAM recommended (for Whisper model)",
-    req5: "Claude API key (for Business &amp; Rage modes only)",
+    req2: "Microphone — any USB or built-in mic works",
+    req3: "Optional: Claude API key (for Business &amp; Rage modes)",
+    install_label: "Install via",
     dl_btn: "Download Latest Release", src_btn: "View Source",
     footer_copy: "© 2026 RTF22 · MIT License · Free &amp; Open Source",
     footer_releases: "Releases",
@@ -633,6 +633,8 @@ const T = {
     hero_cta_dl: "Für Windows herunterladen", hero_cta_gh: "Auf GitHub ansehen",
     pill_offline: "100% Offline STT",
     pill_portable: "Portable App",
+    pill_gpu: "GPU-Beschleunigung",
+    pill_ptt: "Pause Push-to-Talk",
     how_label: "Erste Schritte", how_title: "So funktioniert's",
     how_sub: "Drei Schritte. Keine Cloud. Kein Abo. Kein Schnickschnack.",
     step1_title: "Halten zum Aufnehmen",
@@ -656,20 +658,20 @@ const T = {
     rage_after: '"Ich möchte meine Bedenken bezüglich der Verzögerung äußern und um ein Update bitten."',
     feat_label: "Warum VOCIX", feat_title: "Durchdacht gebaut",
     feat_sub: "Kein Cloud-Abo, keine monatlichen Kosten, kein Account. VOCIX respektiert Privatsphäre und Budget.",
-    feat1_title: "100% Offline Sprach­erkennung",
-    feat1_desc: "Whisper läuft vollständig auf dem eigenen Rechner. Die Stimme verlässt den Computer nie. Kein API-Key, kein Internet, keine Datenschutzbedenken.",
+    feat1_title: "100% Offline Spracherkennung",
+    feat1_desc: "faster-whisper läuft vollständig auf dem eigenen Rechner. Die Stimme verlässt den Computer nie. Kein API-Key, kein Internet. Modell wird beim ersten Start automatisch geladen.",
     feat2_title: "Funktioniert in jeder App",
     feat2_desc: "Text wird an der Cursorposition in jeder Windows-Anwendung eingefügt — E-Mail, Browser, IDE, Office, Chat.",
-    feat3_title: "Mehrsprachig",
-    feat3_desc: "Whisper unterstützt Dutzende Sprachen. Optionale Übersetzung ins Englische. Deutsche und englische Oberfläche direkt dabei.",
-    feat4_title: "System-Tray-App",
-    feat4_desc: "Läuft leise im Tray. Ein farbcodiertes Mikrofon-Symbol zeigt den aktiven Modus auf einen Blick. Startet mit Windows, bleibt unauffällig.",
+    feat3_title: "Mehrsprachig + Offline-Übersetzung",
+    feat3_desc: "In einer der ~50 von Whisper unterstützten Sprachen sprechen. Optionale Offline-Übersetzung ins Englische per Klick — kein API-Key nötig. DE/EN-UI jederzeit umschaltbar.",
+    feat4_title: "Verlauf &amp; Snippet-Expansion",
+    feat4_desc: "Die letzten 20 Diktate bleiben im Tray gespeichert — Klick fügt sie erneut ein. Eigene Kürzel wie /sig oder /adr werden vor dem Einfügen automatisch expandiert.",
     feat5_title: "Claude-gestützte KI",
     feat5_desc: "Business- und Rage-Modus nutzen Anthropics Claude für nuancierte Sprachtransformation — keine einfache Autokorrektur, echte Intelligenz.",
-    feat6_title: "Leichtgewichtig &amp; Schnell",
-    feat6_desc: "Python-App mit minimalem Footprint. Clean-Modus hat null Zusatzlatenz — Transkription und Einfügen unter einer Sekunde auf moderner Hardware.",
-    feat7_title: "Portable App",
-    feat7_desc: "Kein Installer nötig. VOCIX direkt von einem USB-Stick oder einem beliebigen Ordner starten — keine Adminrechte, keine Registry-Einträge, keine Spuren.",
+    feat6_title: "GPU-Beschleunigung &amp; Modellauswahl",
+    feat6_desc: "Whisper-Modell frei wählbar (tiny → large-v3-turbo). GPU-Modus erkennt CUDA automatisch — oder CPU/GPU per Konfig erzwingen. Geschwindigkeit vs. Genauigkeit, selbst entscheiden.",
+    feat7_title: "Portabel, winget &amp; Scoop",
+    feat7_desc: "Per winget install RTF22.VOCIX, Scoop oder einfach entpacken und starten — keine Adminrechte, keine Registry. Auto-Update aus dem Tray mit SHA256-Prüfung.",
     oss_burst: 'KOSTENLOS &amp; <span>OPEN</span><br>SOURCE!',
     oss_sub: "VOCIX steht unter der MIT-Lizenz und lebt auf GitHub. Forken, erweitern, beitragen — oder einfach nutzen. Keine Bedingungen.",
     oss_b1: "Kein Account nötig", oss_b2: "Kein Abo", oss_b3: "Kein Tracking", oss_b4: "Community-getrieben",
@@ -677,10 +679,9 @@ const T = {
     dl_box_title: "VOCIX für Windows",
     dl_version: "Neueste Version · MIT-Lizenz · Kostenlos für immer",
     req1: "Windows 10 oder Windows 11",
-    req2: "Python 3.10+ (oder den Standalone-Installer nutzen)",
-    req3: "Mikrofon — USB oder eingebaut, alles funktioniert",
-    req4: "4 GB RAM empfohlen (für das Whisper-Modell)",
-    req5: "Claude API-Key (nur für Business- &amp; Rage-Modus)",
+    req2: "Mikrofon — USB oder eingebaut, alles funktioniert",
+    req3: "Optional: Claude API-Key (nur für Business- &amp; Rage-Modus)",
+    install_label: "Installieren via",
     dl_btn: "Neueste Version herunterladen", src_btn: "Quellcode ansehen",
     footer_copy: "© 2026 RTF22 · MIT-Lizenz · Kostenlos &amp; Open Source",
     footer_releases: "Versionen",
