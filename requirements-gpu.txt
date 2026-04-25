@@ -13,5 +13,5 @@
 #   GPU-Nutzung setzt eine Source-Installation voraus.
 # - Auf Rechnern ohne NVIDIA-GPU einfach weglassen; "Auto" fällt still auf CPU.
 
-nvidia-cublas-cu12
-nvidia-cudnn-cu12>=9.0.0
+nvidia-cublas-cu12>=12.0.0,<13
+nvidia-cudnn-cu12>=9.0.0,<10
