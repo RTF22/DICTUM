@@ -1,0 +1,42 @@
+name: Excavator
+
+on:
+  schedule:
+    - cron: '0 8 * * *'   # täglich 08:00 UTC
+  workflow_dispatch:
+
+jobs:
+  excavator:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download checkver.ps1
+        shell: pwsh
+        run: |
+          Invoke-WebRequest `
+            -Uri 'https://raw.githubusercontent.com/ScoopInstaller/Scoop/master/bin/checkver.ps1' `
+            -OutFile checkver.ps1
+
+      - name: Check and update manifests
+        shell: pwsh
+        run: |
+          powershell -ExecutionPolicy Bypass -File checkver.ps1 `
+            -App '*' -Dir bucket -Update
+
+      - name: Commit and push if changed
+        shell: pwsh
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add bucket/
+          if (-not (git diff --staged --quiet)) {
+            $version = (Get-Content bucket/vocix.json | ConvertFrom-Json).version
+            git commit -m "Update vocix to $version"
+            git push
+          } else {
+            Write-Host "Kein Update verfügbar."
+          }
