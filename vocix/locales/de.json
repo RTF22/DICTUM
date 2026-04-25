@@ -75,6 +75,7 @@
   "overlay.loading_model_named": "Lade Modell {name}…",
   "overlay.model_loaded": "Modell {name} aktiv ({device})",
   "overlay.model_load_failed": "Modellwechsel fehlgeschlagen",
+  "overlay.model_load_failed_active": "Modellwechsel fehlgeschlagen — '{active}' bleibt aktiv",
   "overlay.model_reload_busy": "Modellwechsel läuft bereits",
   "overlay.gpu_unavailable": "GPU nicht verfügbar — nutze CPU",
 

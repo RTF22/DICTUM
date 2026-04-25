@@ -75,6 +75,7 @@
   "overlay.loading_model_named": "Loading model {name}…",
   "overlay.model_loaded": "Model {name} active ({device})",
   "overlay.model_load_failed": "Model switch failed",
+  "overlay.model_load_failed_active": "Model switch failed — '{active}' stays active",
   "overlay.model_reload_busy": "Model switch already in progress",
   "overlay.gpu_unavailable": "GPU unavailable — using CPU",
 

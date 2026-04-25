@@ -4,12 +4,14 @@ Push-to-Talk: Pause halten → sprechen → loslassen (Hotkey konfigurierbar via
 Moduswechsel: Ctrl+Shift+1 (Clean) / 2 (Business) / 3 (Rage).
 """
 
+import gc
 import logging
 import logging.handlers
 import os
 import sys
 import threading
 import time
+from dataclasses import replace
 
 import keyboard
 
@@ -102,8 +104,10 @@ class VocixApp:
             # und melden im Overlay — sonst harter Abbruch mit nativem Dialog.
             logger.critical("Whisper-Modell konnte nicht geladen werden: %s", e, exc_info=True)
             if self._config.whisper_acceleration == "gpu":
-                logger.warning("GPU-Erzwingung schlug fehl — wechsle für diesen Start auf CPU")
+                logger.warning("GPU-Erzwingung schlug fehl — wechsle dauerhaft auf CPU")
                 self._config.whisper_acceleration = "cpu"
+                with update_state() as state:
+                    state["whisper_acceleration"] = "cpu"
                 try:
                     self._stt = WhisperSTT(self._config)
                     self._overlay.show_temporary(t("overlay.gpu_unavailable"), "error")
@@ -212,7 +216,6 @@ class VocixApp:
                 return
             try:
                 self._overlay.show(t("overlay.loading_model_named", name=target_model), "processing")
-                from dataclasses import replace
                 new_config = replace(
                     self._config,
                     whisper_model=target_model,
@@ -223,10 +226,19 @@ class VocixApp:
                 except Exception as e:
                     logger.error("Modellwechsel fehlgeschlagen (model=%s, accel=%s): %s",
                                  target_model, target_accel, e, exc_info=True)
-                    self._overlay.show_temporary(t("overlay.model_load_failed"), "error")
+                    self._overlay.show_temporary(
+                        t("overlay.model_load_failed_active", active=self._config.whisper_model),
+                        "error",
+                    )
                     return
+                old_stt = self._stt
                 self._stt = new_stt
                 self._config = new_config
+                # CUDA-VRAM des alten Modells deterministisch freigeben — sonst
+                # bleibt es belegt, bis der Pipeline-Thread seine Referenz fallen
+                # lässt (auf 4 GB-Karten OOM-Risiko bei large→tiny-Wechsel).
+                del old_stt
+                gc.collect()
                 with update_state() as state:
                     state["whisper_model"] = target_model
                     state["whisper_acceleration"] = target_accel

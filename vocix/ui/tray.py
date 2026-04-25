@@ -201,11 +201,13 @@ class TrayApp:
             checked = value == self._whisper_acceleration
             label_key = f"tray.acceleration.{value}"
             label = t(label_key)
-            if value == "gpu" and not self._cuda_available:
+            gpu_disabled = value == "gpu" and not self._cuda_available
+            if gpu_disabled:
                 label = f"{label} {t('tray.acceleration.gpu_unavailable_suffix')}"
             accel_items.append(MenuItem(
                 f"{'>> ' if checked else '   '}{label}",
                 make_accel_switch(value),
+                enabled=not gpu_disabled,
             ))
         items.append(MenuItem(t("tray.whisper_acceleration"), Menu(*accel_items)))
 
@@ -483,6 +485,9 @@ class TrayApp:
 
     def _switch_whisper_acceleration(self, value: str) -> None:
         if value == self._whisper_acceleration:
+            return
+        if value == "gpu" and not self._cuda_available:
+            logger.warning("GPU-Auswahl ignoriert — kein CUDA verfügbar")
             return
         if self._on_whisper_acceleration_change is not None:
             self._on_whisper_acceleration_change(value)
