@@ -31,6 +31,7 @@
   "tray.acceleration.gpu": "GPU (CUDA)",
   "tray.acceleration.cpu": "CPU",
   "tray.acceleration.gpu_unavailable_suffix": "— unavailable",
+  "tray.settings": "Settings…",
 
   "stats.title": "VOCIX — Statistics",
   "stats.today": "Today",
@@ -85,5 +86,111 @@
   "error.cpu_unsupported_body": "VOCIX requires a CPU with AVX support (roughly 2012 or newer). The speech-to-text engine (CTranslate2) could not be loaded on this machine.\n\nDetails: {details}",
 
   "prompt.business": "You are a professional writing assistant for business communication.\n\nYour task:\n- Transform the spoken text into professional, formal written language.\n- The result should be suitable for e-mails, letters or business documents.\n- Improve structure, grammar and tone.\n- Remove filler words and colloquial expressions.\n- Preserve the original meaning exactly.\n- Respond ONLY with the rewritten text, no explanations or annotations.\n- Respond in the same language as the input text.",
-  "prompt.rage": "You are a de-escalation assistant.\n\nYour task:\n- You receive text that may be aggressive, rude or emotionally charged.\n- Rewrite it into a polite, respectful and factual form.\n- The ORIGINAL MEANING and all factual arguments MUST be fully preserved.\n- Remove insults, profanity and aggressive phrasing.\n- Replace them with factual, constructive alternatives.\n- The tone should be firm but polite — not submissive.\n- Respond ONLY with the rewritten text, no explanations or annotations.\n- Respond in the same language as the input text."
+  "prompt.rage": "You are a de-escalation assistant.\n\nYour task:\n- You receive text that may be aggressive, rude or emotionally charged.\n- Rewrite it into a polite, respectful and factual form.\n- The ORIGINAL MEANING and all factual arguments MUST be fully preserved.\n- Remove insults, profanity and aggressive phrasing.\n- Replace them with factual, constructive alternatives.\n- The tone should be firm but polite — not submissive.\n- Respond ONLY with the rewritten text, no explanations or annotations.\n- Respond in the same language as the input text.",
+
+  "settings": {
+    "title": "VOCIX — Settings",
+    "tab": { "basics": "Basics", "advanced": "Advanced", "expert": "Expert" },
+    "button": {
+      "ok": "OK", "cancel": "Cancel", "apply": "Apply",
+      "test": "Test", "browse": "Browse…", "other_key": "Other key…",
+      "reset": "Reset to factory defaults",
+      "open_config_dir": "Open config directory"
+    },
+    "field": {
+      "input_language": "Input language",
+      "output_language": "Output language",
+      "whisper_model": "Whisper model",
+      "acceleration": "Acceleration",
+      "api_key": "Anthropic API key",
+      "default_mode": "Default startup mode",
+      "hotkey_record": "Record hotkey (push-to-talk)",
+      "hotkey_mode_a": "Hotkey Clean mode",
+      "hotkey_mode_b": "Hotkey Business mode",
+      "hotkey_mode_c": "Hotkey Rage mode",
+      "model_dir": "Model directory",
+      "log_file": "Log file",
+      "log_level": "Log level",
+      "overlay_seconds": "Overlay display time (s)",
+      "rdp_mode": "Remote desktop mode",
+      "clipboard_delay": "Clipboard delay (s)",
+      "paste_delay": "Paste delay (s)",
+      "silence_threshold": "Silence threshold",
+      "min_duration": "Minimum recording duration (s)",
+      "whisper_language_override": "Whisper language override",
+      "sample_rate": "Sample rate",
+      "anthropic_model": "Anthropic model ID",
+      "anthropic_timeout": "Anthropic timeout (s)"
+    },
+    "tooltip": {
+      "input_language": "Language you speak in — passed to Whisper.",
+      "output_language": "What gets pasted: original language or translated to English.",
+      "whisper_model": "Larger model = better quality, more RAM, slower.",
+      "acceleration": "GPU requires CUDA libraries (source setup only).",
+      "api_key": "Required for Business and Rage modes. Test sends a short ping.",
+      "default_mode": "Mode VOCIX starts with. Business/Rage require a valid API key.",
+      "hotkey_record": "Single key — push-to-talk needs hold-capable keys (e.g. Pause, F9).",
+      "rdp_mode": "Extends clipboard and paste delays for remote desktop sessions.",
+      "silence_threshold": "RMS value below which audio counts as silence. Higher = trim more aggressively.",
+      "sample_rate": "Whisper expects 16000 Hz — other values are experimental."
+    },
+    "help": {
+      "whisper_model": {
+        "title": "Whisper models compared",
+        "body": "tiny ~75 MB, very fast, low accuracy\nbase ~150 MB, fast\nsmall ~500 MB, balanced (default)\nmedium ~1.5 GB, high accuracy\nlarge-v3 ~3 GB, highest accuracy, slow\nlarge-v3-turbo ~1.6 GB, near large-v3 quality at half the latency"
+      },
+      "acceleration": {
+        "title": "Hardware acceleration",
+        "body": "Auto: uses GPU when available, otherwise CPU.\nGPU: forces CUDA — requires nvidia-cublas + nvidia-cudnn (source setup only, not bundled in the ZIP).\nCPU: forces CPU. Always works, slower."
+      },
+      "api_key": {
+        "title": "Anthropic API key",
+        "body": "Required for Business and Rage modes. Get a key at https://console.anthropic.com. Not required if you only use Clean mode."
+      },
+      "rdp_mode": {
+        "title": "Remote desktop mode",
+        "body": "Enables extended clipboard and paste delays because RDP must sync the clipboard between host and client. Recommended: on when using VOCIX over RDP."
+      },
+      "silence_threshold": {
+        "title": "Silence threshold",
+        "body": "Determines the RMS level at which audio counts as silence. Higher values trim more aggressively. Default 0.01 works in most environments; raise it in noisy rooms."
+      },
+      "sample_rate": {
+        "title": "Sample rate",
+        "body": "Whisper models are trained at 16 kHz. Other sample rates get resampled internally — only change this if you know exactly what you're doing."
+      },
+      "whisper_language_override": {
+        "title": "Whisper language override",
+        "body": "Normally Whisper uses your input language. You can force a different language here (e.g. speak German but transcribe as French). \"auto\" = follow input language."
+      },
+      "anthropic_model": {
+        "title": "Anthropic model ID",
+        "body": "claude-sonnet-4-6 — fast, good for Business/Rage (default).\nclaude-opus-4-7 — highest quality, slower, more expensive.\nclaude-haiku-4-5-20251001 — very fast, cheap, simple rephrasing."
+      }
+    },
+    "status": {
+      "api_valid": "✓ API key valid",
+      "api_invalid": "✗ Invalid",
+      "api_unchecked": "– Not tested",
+      "api_locked": "Set API key in Basics to unlock Claude options."
+    },
+    "error": {
+      "duplicate_hotkey": "This hotkey is already in use.",
+      "ptt_combo_not_allowed": "Push-to-talk requires a single key.",
+      "path_missing": "Path does not exist."
+    },
+    "confirm": {
+      "factory_reset": "Really reset all settings to factory defaults?"
+    },
+    "lang": { "de": "German", "en": "English", "other": "Other…" },
+    "output": { "input_lang": "Same as input", "english": "English" },
+    "modifier": {
+      "none": "(none)", "ctrl": "Ctrl", "ctrl_shift": "Ctrl+Shift",
+      "ctrl_alt": "Ctrl+Alt", "alt_shift": "Alt+Shift"
+    },
+    "capture": {
+      "prompt": "Press the desired key/combo now…",
+      "cancel_hint": "(Esc = cancel)"
+    }
+  }
 }

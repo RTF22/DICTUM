@@ -31,6 +31,7 @@
   "tray.acceleration.gpu": "GPU (CUDA)",
   "tray.acceleration.cpu": "CPU",
   "tray.acceleration.gpu_unavailable_suffix": "— nicht verfügbar",
+  "tray.settings": "Einstellungen…",
 
   "stats.title": "VOCIX — Statistik",
   "stats.today": "Heute",
@@ -85,5 +86,111 @@
   "error.cpu_unsupported_body": "VOCIX erfordert eine CPU mit AVX-Unterstützung (etwa Baujahr 2012 oder neuer). Die Spracherkennung (CTranslate2) konnte auf diesem Rechner nicht geladen werden.\n\nDetails: {details}",
 
   "prompt.business": "Du bist ein professioneller Textassistent für geschäftliche Kommunikation.\n\nDeine Aufgabe:\n- Wandle den gesprochenen Text in professionelle, formelle Schriftsprache um.\n- Der Text soll für E-Mails, Briefe oder geschäftliche Dokumente geeignet sein.\n- Verbessere Struktur, Grammatik und Tonalität.\n- Entferne Füllwörter und umgangssprachliche Ausdrücke.\n- Behalte die ursprüngliche Bedeutung exakt bei.\n- Antworte NUR mit dem umformulierten Text, ohne Erklärungen oder Anmerkungen.\n- Antworte in derselben Sprache wie der Eingabetext.",
-  "prompt.rage": "Du bist ein Deeskalations-Assistent.\n\nDeine Aufgabe:\n- Du erhältst Text, der möglicherweise aggressiv, unhöflich oder emotional aufgeladen ist.\n- Wandle den Text in eine höfliche, respektvolle und sachliche Formulierung um.\n- Die URSPRÜNGLICHE BEDEUTUNG und alle Sachargumente MÜSSEN vollständig erhalten bleiben.\n- Entferne Beleidigungen, Schimpfwörter und aggressive Formulierungen.\n- Ersetze sie durch sachliche, konstruktive Alternativen.\n- Der Ton soll bestimmt aber höflich sein — nicht unterwürfig.\n- Antworte NUR mit dem umformulierten Text, ohne Erklärungen oder Anmerkungen.\n- Antworte in derselben Sprache wie der Eingabetext."
+  "prompt.rage": "Du bist ein Deeskalations-Assistent.\n\nDeine Aufgabe:\n- Du erhältst Text, der möglicherweise aggressiv, unhöflich oder emotional aufgeladen ist.\n- Wandle den Text in eine höfliche, respektvolle und sachliche Formulierung um.\n- Die URSPRÜNGLICHE BEDEUTUNG und alle Sachargumente MÜSSEN vollständig erhalten bleiben.\n- Entferne Beleidigungen, Schimpfwörter und aggressive Formulierungen.\n- Ersetze sie durch sachliche, konstruktive Alternativen.\n- Der Ton soll bestimmt aber höflich sein — nicht unterwürfig.\n- Antworte NUR mit dem umformulierten Text, ohne Erklärungen oder Anmerkungen.\n- Antworte in derselben Sprache wie der Eingabetext.",
+
+  "settings": {
+    "title": "VOCIX — Einstellungen",
+    "tab": { "basics": "Basics", "advanced": "Erweitert", "expert": "Expert" },
+    "button": {
+      "ok": "OK", "cancel": "Abbrechen", "apply": "Übernehmen",
+      "test": "Test", "browse": "Durchsuchen…", "other_key": "Andere Taste…",
+      "reset": "Auf Werkseinstellungen zurücksetzen",
+      "open_config_dir": "Konfigurationsverzeichnis öffnen"
+    },
+    "field": {
+      "input_language": "Eingabesprache",
+      "output_language": "Ausgabesprache",
+      "whisper_model": "Whisper-Modell",
+      "acceleration": "Beschleunigung",
+      "api_key": "Anthropic API-Key",
+      "default_mode": "Standardmodus beim Start",
+      "hotkey_record": "Aufnahme-Hotkey (Push-to-Talk)",
+      "hotkey_mode_a": "Hotkey Modus Clean",
+      "hotkey_mode_b": "Hotkey Modus Business",
+      "hotkey_mode_c": "Hotkey Modus Rage",
+      "model_dir": "Modellverzeichnis",
+      "log_file": "Logfile",
+      "log_level": "Loglevel",
+      "overlay_seconds": "Overlay-Anzeigedauer (s)",
+      "rdp_mode": "Remote-Desktop-Modus",
+      "clipboard_delay": "Clipboard-Delay (s)",
+      "paste_delay": "Paste-Delay (s)",
+      "silence_threshold": "Stille-Schwelle",
+      "min_duration": "Mindestaufnahmedauer (s)",
+      "whisper_language_override": "Whisper-Sprach-Override",
+      "sample_rate": "Sample-Rate",
+      "anthropic_model": "Anthropic-Modell-ID",
+      "anthropic_timeout": "Anthropic-Timeout (s)"
+    },
+    "tooltip": {
+      "input_language": "Sprache, in der du sprichst — wird an Whisper übergeben.",
+      "output_language": "Was am Cursor eingefügt wird: Originalsprache oder ins Englische übersetzt.",
+      "whisper_model": "Größeres Modell = bessere Qualität, mehr RAM, langsamer.",
+      "acceleration": "GPU benötigt CUDA-Bibliotheken (nur Source-Setup).",
+      "api_key": "Wird benötigt für Modus Business und Rage. Test öffnet einen kurzen Ping.",
+      "default_mode": "Modus, mit dem VOCIX startet. Business/Rage setzen einen gültigen API-Key voraus.",
+      "hotkey_record": "Einzeltaste — Push-to-Talk benötigt Hold-fähige Tasten (z. B. Pause, F9).",
+      "rdp_mode": "Verlängert Clipboard-/Paste-Delays für Remote-Desktop-Sitzungen.",
+      "silence_threshold": "RMS-Wert, unter dem Audio als Stille gilt. Höher = aggressiver schneiden.",
+      "sample_rate": "Whisper erwartet 16000 Hz — andere Werte sind experimentell."
+    },
+    "help": {
+      "whisper_model": {
+        "title": "Whisper-Modelle im Vergleich",
+        "body": "tiny ~75 MB, sehr schnell, niedrige Genauigkeit\nbase ~150 MB, schnell\nsmall ~500 MB, ausgewogen (Default)\nmedium ~1.5 GB, hohe Genauigkeit\nlarge-v3 ~3 GB, höchste Genauigkeit, langsam\nlarge-v3-turbo ~1.6 GB, fast wie large-v3 bei halber Latenz"
+      },
+      "acceleration": {
+        "title": "Hardware-Beschleunigung",
+        "body": "Auto: nutzt GPU, wenn verfügbar; sonst CPU.\nGPU: erzwingt CUDA — benötigt nvidia-cublas + nvidia-cudnn (nur Source-Setup, nicht im ZIP).\nCPU: erzwingt CPU. Funktioniert immer, langsamer."
+      },
+      "api_key": {
+        "title": "Anthropic API-Key",
+        "body": "Erforderlich für Business- und Rage-Modus. Du erhältst einen Key unter https://console.anthropic.com. Nicht erforderlich, wenn du nur den Clean-Modus nutzt."
+      },
+      "rdp_mode": {
+        "title": "Remote-Desktop-Modus",
+        "body": "Aktiviert verlängerte Clipboard- und Paste-Delays, weil RDP die Zwischenablage zwischen Host und Client synchronisieren muss. Empfehlung: an, wenn du VOCIX über RDP nutzt."
+      },
+      "silence_threshold": {
+        "title": "Stille-Schwelle",
+        "body": "Bestimmt, ab welchem RMS-Pegel Audio als Stille gilt. Höhere Werte schneiden aggressiver. Standard 0.01 funktioniert in den meisten Umgebungen; in lauten Räumen ggf. erhöhen."
+      },
+      "sample_rate": {
+        "title": "Sample-Rate",
+        "body": "Whisper-Modelle wurden auf 16 kHz trainiert. Andere Sample-Rates werden intern resampled — nur ändern, wenn du genau weißt was du tust."
+      },
+      "whisper_language_override": {
+        "title": "Whisper-Sprach-Override",
+        "body": "Normalerweise nutzt Whisper deine Eingabesprache. Hier kannst du eine andere Sprache erzwingen (z. B. wenn du auf Deutsch sprichst, aber Whisper soll als Französisch transkribieren). \"auto\" = an Eingabesprache koppeln."
+      },
+      "anthropic_model": {
+        "title": "Anthropic-Modell-ID",
+        "body": "claude-sonnet-4-6 — schnell, gut für Business/Rage (Default).\nclaude-opus-4-7 — höchste Qualität, langsamer, teurer.\nclaude-haiku-4-5-20251001 — sehr schnell, günstig, einfache Umformulierungen."
+      }
+    },
+    "status": {
+      "api_valid": "✓ API-Key gültig",
+      "api_invalid": "✗ Ungültig",
+      "api_unchecked": "– Nicht geprüft",
+      "api_locked": "API-Key in Basics setzen, um Claude-Optionen freizuschalten."
+    },
+    "error": {
+      "duplicate_hotkey": "Dieser Hotkey ist bereits belegt.",
+      "ptt_combo_not_allowed": "Push-to-Talk benötigt eine Einzeltaste.",
+      "path_missing": "Pfad existiert nicht."
+    },
+    "confirm": {
+      "factory_reset": "Wirklich alle Einstellungen auf Werkszustand zurücksetzen?"
+    },
+    "lang": { "de": "Deutsch", "en": "Englisch", "other": "Andere…" },
+    "output": { "input_lang": "Wie Eingabesprache", "english": "Englisch" },
+    "modifier": {
+      "none": "(kein)", "ctrl": "Ctrl", "ctrl_shift": "Ctrl+Shift",
+      "ctrl_alt": "Ctrl+Alt", "alt_shift": "Alt+Shift"
+    },
+    "capture": {
+      "prompt": "Drücke jetzt die gewünschte Taste/Kombo…",
+      "cancel_hint": "(Esc = Abbrechen)"
+    }
+  }
 }
