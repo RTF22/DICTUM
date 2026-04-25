@@ -19,6 +19,21 @@ from vocix.i18n import t
 logger = logging.getLogger(__name__)
 
 
+def _ping_anthropic(api_key: str, model: str, timeout: float) -> bool:
+    """True = Key + Modell akzeptiert."""
+    try:
+        from anthropic import Anthropic
+        client = Anthropic(api_key=api_key, timeout=timeout)
+        client.messages.create(
+            model=model, max_tokens=1,
+            messages=[{"role": "user", "content": "ok"}],
+        )
+        return True
+    except Exception as e:
+        logger.info("Anthropic-Ping fehlgeschlagen: %s", e)
+        return False
+
+
 class SettingsDialog:
     def __init__(
         self,
@@ -148,9 +163,23 @@ class SettingsDialog:
 
         # API-Key
         ttk.Label(frame, text=t("settings.field.api_key")).grid(row=row, column=0, sticky="w", pady=4)
-        self._var_api_key = tk.StringVar(value=self._draft.anthropic_api_key)
+        self._var_api_key = tk.StringVar(value=self._displayed_api_key())
         self._api_entry = ttk.Entry(frame, textvariable=self._var_api_key, show="*", width=30)
         self._api_entry.grid(row=row, column=1, sticky="ew")
+
+        def _on_focus_in(_e):
+            self._var_api_key.set(self._draft.anthropic_api_key or "")
+            self._api_entry.config(show="")
+
+        def _on_focus_out(_e):
+            new = self._var_api_key.get().strip()
+            self._draft.anthropic_api_key = new
+            self._var_api_key.set(self._displayed_api_key())
+            self._api_entry.config(show="*")
+
+        self._api_entry.bind("<FocusIn>", _on_focus_in)
+        self._api_entry.bind("<FocusOut>", _on_focus_out)
+
         ttk.Button(frame, text=t("settings.button.test"), command=self._on_test_api).grid(
             row=row, column=2, padx=4)
         self._var_api_status = tk.StringVar(value=t("settings.status.api_unchecked"))
@@ -247,9 +276,30 @@ class SettingsDialog:
 
         HotkeyCaptureDialog(self._win, allow_combos=allow_combos, on_result=done)
 
+    def _displayed_api_key(self) -> str:
+        key = self._draft.anthropic_api_key or ""
+        if len(key) <= 12:
+            return key
+        return f"{key[:7]}…{key[-4:]}"
+
     def _on_test_api(self) -> None:
-        # Implementation in Task 10
-        pass
+        from vocix.config import update_state
+        key = self._var_api_key.get().strip()
+        if not key:
+            self._var_api_status.set(t("settings.status.api_invalid"))
+            return
+        self._var_api_status.set("…")
+        self._win.update_idletasks()
+        ok = _ping_anthropic(key, self._draft.anthropic_model, self._draft.anthropic_timeout)
+        self._draft.anthropic_api_key = key
+        with update_state() as s:
+            s["anthropic_key_validated"] = ok
+        if ok:
+            self._var_api_status.set(t("settings.status.api_valid"))
+        else:
+            self._var_api_status.set(t("settings.status.api_invalid"))
+        self._refresh_api_gated_widgets()
+        self._show_anthropic_section(ok)
 
     def _build_advanced(self, frame: ttk.Frame) -> None:
         from tkinter import filedialog

@@ -92,6 +92,28 @@ def test_advanced_silence_threshold_round_trip(root):
     dlg.destroy()
 
 
+def test_api_key_masked_display_for_saved_key(root):
+    cfg = Config(language="de", anthropic_api_key="sk-ant-abcdefghijklmnopqrstuvwxyz1234")
+    dlg = SettingsDialog(root, config=cfg, on_apply=lambda c: None)
+    assert dlg._displayed_api_key() == "sk-ant-…1234"
+    dlg.destroy()
+
+
+def test_api_key_test_marks_validated(root, tmp_path, monkeypatch):
+    state_file = tmp_path / "state.json"
+    state_file.write_text("{}")
+    monkeypatch.setattr("vocix.config.STATE_FILE", state_file)
+    cfg = Config(language="de")
+    dlg = SettingsDialog(root, config=cfg, on_apply=lambda c: None)
+    dlg._var_api_key.set("sk-ant-test-XYZ")
+    monkeypatch.setattr("vocix.ui.settings._ping_anthropic", lambda key, model, timeout: True)
+    dlg._on_test_api()
+    import json
+    assert json.loads(state_file.read_text())["anthropic_key_validated"] is True
+    assert dlg._draft.anthropic_api_key == "sk-ant-test-XYZ"
+    dlg.destroy()
+
+
 def test_expert_factory_reset_clears_state(root, tmp_path, monkeypatch):
     state_file = tmp_path / "state.json"
     state_file.write_text('{"language": "en"}')
