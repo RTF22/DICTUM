@@ -252,7 +252,116 @@ class SettingsDialog:
         pass
 
     def _build_advanced(self, frame: ttk.Frame) -> None:
-        pass
+        from tkinter import filedialog
+        from vocix.ui.tooltip import Tooltip
+        from vocix.ui.help_popup import HelpButton
+
+        for col in (1,):
+            frame.columnconfigure(col, weight=1)
+
+        row = 0
+
+        def _path_row(label_key, attr, askdir):
+            nonlocal row
+            ttk.Label(frame, text=t(label_key)).grid(row=row, column=0, sticky="w", pady=4)
+            var = tk.StringVar(value=getattr(self._draft, attr))
+            entry = ttk.Entry(frame, textvariable=var)
+            entry.grid(row=row, column=1, sticky="ew")
+            entry.bind("<FocusOut>", lambda _e: setattr(self._draft, attr, var.get()))
+
+            def browse():
+                if askdir:
+                    p = filedialog.askdirectory(initialdir=var.get() or None)
+                else:
+                    p = filedialog.asksaveasfilename(initialdir=str(getattr(self._draft, attr) or ""))
+                if p:
+                    var.set(p)
+                    setattr(self._draft, attr, p)
+
+            ttk.Button(frame, text=t("settings.button.browse"), command=browse).grid(row=row, column=2, padx=4)
+            row += 1
+            return var
+
+        self._var_model_dir = _path_row("settings.field.model_dir", "whisper_model_dir", askdir=True)
+        self._var_log_file = _path_row("settings.field.log_file", "log_file", askdir=False)
+
+        ttk.Label(frame, text=t("settings.field.log_level")).grid(row=row, column=0, sticky="w", pady=4)
+        self._var_log_level = tk.StringVar(value=self._draft.log_level)
+        cb = ttk.Combobox(frame, state="readonly", width=12, textvariable=self._var_log_level,
+                          values=("DEBUG", "INFO", "WARNING", "ERROR"))
+        cb.grid(row=row, column=1, sticky="w")
+        cb.bind("<<ComboboxSelected>>",
+                lambda _e: setattr(self._draft, "log_level", self._var_log_level.get()))
+        row += 1
+
+        ttk.Label(frame, text=t("settings.field.overlay_seconds")).grid(row=row, column=0, sticky="w", pady=4)
+        self._var_overlay = tk.DoubleVar(value=self._draft.overlay_display_seconds)
+        sp = ttk.Spinbox(frame, from_=0.5, to=10.0, increment=0.5, width=8,
+                        textvariable=self._var_overlay,
+                        command=lambda: setattr(self._draft, "overlay_display_seconds",
+                                               float(self._var_overlay.get())))
+        sp.grid(row=row, column=1, sticky="w")
+        row += 1
+
+        ttk.Label(frame, text=t("settings.field.rdp_mode")).grid(row=row, column=0, sticky="w", pady=4)
+        self._var_rdp = tk.BooleanVar(value=self._draft.rdp_mode)
+        ttk.Checkbutton(frame, variable=self._var_rdp, command=self._on_rdp_changed).grid(row=row, column=1, sticky="w")
+        HelpButton(frame,
+                   title_provider=lambda: t("settings.help.rdp_mode.title"),
+                   body_provider=lambda: t("settings.help.rdp_mode.body")
+                   ).grid(row=row, column=2)
+        row += 1
+
+        ttk.Label(frame, text=t("settings.field.clipboard_delay")).grid(row=row, column=0, sticky="w", pady=4)
+        self._var_clipboard = tk.DoubleVar(value=self._draft.clipboard_delay)
+        self._clipboard_spin = ttk.Spinbox(frame, from_=0.01, to=1.0, increment=0.05, width=8,
+                                          textvariable=self._var_clipboard,
+                                          command=lambda: setattr(self._draft, "clipboard_delay",
+                                                                 float(self._var_clipboard.get())))
+        self._clipboard_spin.grid(row=row, column=1, sticky="w")
+        row += 1
+
+        ttk.Label(frame, text=t("settings.field.paste_delay")).grid(row=row, column=0, sticky="w", pady=4)
+        self._var_paste = tk.DoubleVar(value=self._draft.paste_delay)
+        self._paste_spin = ttk.Spinbox(frame, from_=0.05, to=1.0, increment=0.05, width=8,
+                                       textvariable=self._var_paste,
+                                       command=lambda: setattr(self._draft, "paste_delay",
+                                                              float(self._var_paste.get())))
+        self._paste_spin.grid(row=row, column=1, sticky="w")
+        row += 1
+
+        ttk.Label(frame, text=t("settings.field.silence_threshold")).grid(row=row, column=0, sticky="w", pady=4)
+        self._var_silence = tk.DoubleVar(value=self._draft.silence_threshold)
+        scale = ttk.Scale(frame, from_=0.001, to=0.1, variable=self._var_silence,
+                         command=lambda _v: setattr(self._draft, "silence_threshold",
+                                                   float(self._var_silence.get())))
+        scale.grid(row=row, column=1, sticky="ew")
+        ttk.Label(frame, textvariable=self._var_silence, width=8).grid(row=row, column=2)
+        HelpButton(frame,
+                   title_provider=lambda: t("settings.help.silence_threshold.title"),
+                   body_provider=lambda: t("settings.help.silence_threshold.body")
+                   ).grid(row=row, column=3, padx=4)
+        row += 1
+
+        ttk.Label(frame, text=t("settings.field.min_duration")).grid(row=row, column=0, sticky="w", pady=4)
+        self._var_min_dur = tk.DoubleVar(value=self._draft.min_duration)
+        ttk.Spinbox(frame, from_=0.1, to=5.0, increment=0.1, width=8,
+                   textvariable=self._var_min_dur,
+                   command=lambda: setattr(self._draft, "min_duration",
+                                          float(self._var_min_dur.get()))
+                   ).grid(row=row, column=1, sticky="w")
+        row += 1
+
+        self._on_rdp_changed()
+
+    def _on_rdp_changed(self) -> None:
+        self._draft.rdp_mode = self._var_rdp.get()
+        if self._draft.rdp_mode:
+            self._clipboard_spin.state(["disabled"])
+            self._paste_spin.state(["disabled"])
+        else:
+            self._clipboard_spin.state(["!disabled"])
+            self._paste_spin.state(["!disabled"])
 
     def _build_expert(self, frame: ttk.Frame) -> None:
         pass

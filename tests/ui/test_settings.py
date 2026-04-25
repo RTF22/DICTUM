@@ -72,3 +72,21 @@ def test_basics_changing_input_lang_updates_draft(root):
     dlg._on_input_lang_changed()
     assert dlg._draft.language == "en"
     dlg.destroy()
+
+
+def test_advanced_rdp_toggle_disables_delays(root):
+    cfg = Config(language="de", rdp_mode=False)
+    dlg = SettingsDialog(root, config=cfg, on_apply=lambda c: None)
+    dlg._var_rdp.set(True)
+    dlg._on_rdp_changed()
+    assert "disabled" in dlg._clipboard_spin.state()
+    dlg.destroy()
+
+
+def test_advanced_silence_threshold_round_trip(root):
+    cfg = Config(language="de")
+    dlg = SettingsDialog(root, config=cfg, on_apply=lambda c: None)
+    dlg._var_silence.set(0.05)
+    setattr(dlg._draft, "silence_threshold", float(dlg._var_silence.get()))
+    assert dlg._draft.silence_threshold == pytest.approx(0.05)
+    dlg.destroy()
