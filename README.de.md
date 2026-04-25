@@ -29,6 +29,8 @@ Lokale Sprachdiktion-App für Windows 11 mit globalem Hotkey. Sprache aufnehmen,
 - **Snippet-Expansion** — eigene Kürzel (`/sig`, `/adr`, …) im Diktat werden vor dem Einfügen durch Volltext ersetzt; Whisper-Transkripte wie „Schrägstrich Sig" werden automatisch normalisiert
 - **Auto-Update aus dem Tray** — neue Releases werden im Hintergrund erkannt; ein Klick lädt das Win-x64-ZIP, prüft den SHA256 und tauscht die Dateien automatisch aus
 - **Lokale Verarbeitung** — Speech-to-Text läuft vollständig offline (faster-whisper)
+- **Konfigurierbares Whisper-Modell** — `tiny` / `base` / `small` (Standard) / `medium` / `large-v3` / `large-v3-turbo` zur Laufzeit über das Tray-Menü umschaltbar (größer = genauer, langsamer)
+- **Optionale NVIDIA-GPU-Beschleunigung** — erkennt CUDA automatisch, fällt sonst auf CPU zurück; im Tray-Menü umschaltbar (`Auto` / `GPU` / `CPU`). Nur in der Source-Installation verfügbar (das gepackte ZIP bleibt CPU-only)
 - **Optionale Offline-Übersetzung ins Englische** — Tray-Toggle: in einer der ~50 von Whisper unterstützten Sprachen sprechen und VOCIX fügt sauberen englischen Text an der Cursorposition ein, komplett offline (kein API-Key nötig)
 - **Konfigurierbare Hotkeys** via `.env`
 - **RDP-Modus** für Remote-Desktop-Sessions
@@ -77,6 +79,17 @@ copy .env.example .env
 python -m vocix.main
 ```
 
+### GPU-Beschleunigung (optional, nur NVIDIA)
+
+```bash
+pip install -r requirements-gpu.txt
+```
+
+Lädt cuBLAS + cuDNN (~600 MB) und ermöglicht `ctranslate2` die GPU-Nutzung.
+Anschließend im Tray-Menü **Beschleunigung → GPU (CUDA)** wählen (oder
+`VOCIX_WHISPER_ACCELERATION=gpu` setzen). Das gepackte Win-x64-ZIP enthält
+diese Bibliotheken **nicht** — GPU ist opt-in für Source-Installationen.
+
 ### .exe selbst bauen
 
 ```bash
@@ -93,6 +106,18 @@ Alle Einstellungen werden über die `.env`-Datei im Anwendungsverzeichnis gesteu
 ```ini
 # Anthropic API-Key (optional, für Modus B und C)
 ANTHROPIC_API_KEY=sk-ant-dein-key-hier
+
+# Sprache — steuert UI, Claude-Prompts und Whisper-STT (de, en)
+# Tray-Auswahl (in state.json) überschreibt diesen Wert.
+VOCIX_LANGUAGE=de
+
+# Whisper-Modell — tiny | base | small (Standard) | medium | large-v3 | large-v3-turbo
+# Tray-Auswahl (state.json) überschreibt diesen Wert.
+VOCIX_WHISPER_MODEL=small
+
+# Beschleunigung — auto (GPU wenn verfügbar) | gpu (CUDA erzwingen) | cpu (CPU erzwingen)
+# GPU-Modus erfordert `pip install -r requirements-gpu.txt` (nur Source-Install).
+VOCIX_WHISPER_ACCELERATION=auto
 
 # Hotkeys — Push-to-Talk benötigt eine Einzeltaste, Moduswechsel dürfen Kombos sein
 VOCIX_HOTKEY_RECORD=pause
@@ -126,7 +151,9 @@ Ohne API-Key fallen Modus B und C automatisch auf Modus A (Clean) zurück.
 2. `Pause` gedrückt halten und sprechen
 3. Loslassen — der Text wird transkribiert, transformiert und automatisch eingefügt
 
-**Tray-Menü:** Rechtsklick auf das Tray-Icon → Moduswechsel, **Sprache / Language** (Deutsch / English — schaltet UI, Claude-Prompts und Whisper-STT), **Info** (About + Repo-Link), **Beenden**
+**Tray-Menü:** Rechtsklick auf das Tray-Icon → Moduswechsel, **Sprache / Language** (Deutsch / English — schaltet UI, Claude-Prompts und Whisper-STT), **Whisper-Modell** (`tiny` … `large-v3-turbo` zur Laufzeit), **Beschleunigung** (Auto / GPU / CPU — GPU ist ausgegraut, wenn kein CUDA erkannt wird), **Info** (About + Repo-Link), **Beenden**
+
+> Hinweis: Tray-Auswahlen (Modus, Sprache, Whisper-Modell, Beschleunigung) werden in `state.json` persistiert und überschreiben die entsprechenden `.env`-Werte beim nächsten Start.
 
 ## Fehlerbehebung
 
