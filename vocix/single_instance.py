@@ -12,6 +12,9 @@ import sys
 
 logger = logging.getLogger(__name__)
 
+# Bewusst session-lokal (kein "Global\"-Prefix): VOCIX startet pro Windows-User
+# einmal. Bei schnellem Benutzerwechsel darf jeder User seine eigene Instanz
+# haben — ein global eindeutiges Mutex würde das verhindern.
 _MUTEX_NAME = "VOCIX-SingleInstance-Mutex-v1"
 _ERROR_ALREADY_EXISTS = 183
 

@@ -137,6 +137,12 @@ class TrayApp:
         self._icon: Icon | None = None
         self._thread: threading.Thread | None = None
         self._update_info: updater.UpdateInfo | None = None
+        # Schützt Tray-State (Whisper-Modell/Beschleunigung) gegen
+        # Lese-/Schreib-Race zwischen Worker-Thread (update_whisper_settings)
+        # und pystray-Thread (_build_menu). Python-Assignments sind atomar,
+        # aber zwei abhängige Felder (Modell + Beschleunigung) sollen konsistent
+        # gelesen werden.
+        self._state_lock = threading.Lock()
 
     def _build_menu(self) -> Menu:
         def make_switch(mode: str):
@@ -183,12 +189,16 @@ class TrayApp:
         def make_model_switch(name: str):
             return lambda: self._switch_whisper_model(name)
 
+        def make_model_check(name: str):
+            return lambda item: name == self._whisper_model
+
         model_items = []
         for name in _WHISPER_MODELS:
-            checked = name == self._whisper_model
             model_items.append(MenuItem(
-                f"{'>> ' if checked else '   '}{name}",
+                name,
                 make_model_switch(name),
+                checked=make_model_check(name),
+                radio=True,
             ))
         items.append(MenuItem(t("tray.whisper_model"), Menu(*model_items)))
 
@@ -196,18 +206,22 @@ class TrayApp:
         def make_accel_switch(value: str):
             return lambda: self._switch_whisper_acceleration(value)
 
+        def make_accel_check(value: str):
+            return lambda item: value == self._whisper_acceleration
+
         accel_items = []
         for value in _WHISPER_ACCELERATIONS:
-            checked = value == self._whisper_acceleration
             label_key = f"tray.acceleration.{value}"
             label = t(label_key)
             gpu_disabled = value == "gpu" and not self._cuda_available
             if gpu_disabled:
                 label = f"{label} {t('tray.acceleration.gpu_unavailable_suffix')}"
             accel_items.append(MenuItem(
-                f"{'>> ' if checked else '   '}{label}",
+                label,
                 make_accel_switch(value),
                 enabled=not gpu_disabled,
+                checked=make_accel_check(value),
+                radio=True,
             ))
         items.append(MenuItem(t("tray.whisper_acceleration"), Menu(*accel_items)))
 
@@ -471,10 +485,11 @@ class TrayApp:
 
     def update_whisper_settings(self, model: str | None = None,
                                  acceleration: str | None = None) -> None:
-        if model is not None:
-            self._whisper_model = model
-        if acceleration is not None:
-            self._whisper_acceleration = acceleration
+        with self._state_lock:
+            if model is not None:
+                self._whisper_model = model
+            if acceleration is not None:
+                self._whisper_acceleration = acceleration
         self._update_icon()
 
     def _switch_whisper_model(self, name: str) -> None:

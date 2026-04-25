@@ -1,4 +1,5 @@
 import logging
+from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
@@ -10,11 +11,14 @@ from vocix.stt.base import STTEngine
 logger = logging.getLogger(__name__)
 
 
+@lru_cache(maxsize=1)
 def cuda_available() -> bool:
     """Prüft, ob CTranslate2 mindestens ein CUDA-Gerät sieht.
 
     Robust gegen fehlende Bibliotheken (cuDNN/cuBLAS) — bei jeder Exception
     wird CPU genutzt. Wird aus dem Tray-Thread und beim Modellladen aufgerufen.
+    Ergebnis ist pro Prozess gecacht — der ctranslate2-Import passiert nur
+    beim ersten Aufruf.
     """
     try:
         import ctranslate2

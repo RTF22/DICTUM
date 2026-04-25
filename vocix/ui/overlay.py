@@ -37,6 +37,8 @@ class StatusOverlay:
         self._meter_bar: int | None = None
         self._level_source: Callable[[], float] | None = None
         self._meter_active = False
+        self._about_window: tk.Toplevel | None = None
+        self._stats_window: tk.Toplevel | None = None
         self._ready = threading.Event()
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
@@ -192,6 +194,26 @@ class StatusOverlay:
         win.focus_force()
         win.lift()
 
+    def _focus_existing(self, attr: str) -> bool:
+        """Hebt ein bereits offenes Singleton-Fenster nach vorne.
+
+        Returns True, wenn ein gültiges Fenster gefunden und fokussiert wurde.
+        """
+        win = getattr(self, attr, None)
+        if win is None:
+            return False
+        try:
+            if not win.winfo_exists():
+                setattr(self, attr, None)
+                return False
+        except tk.TclError:
+            setattr(self, attr, None)
+            return False
+        win.deiconify()
+        win.lift()
+        win.focus_force()
+        return True
+
     def show_about(
         self,
         title: str,
@@ -207,9 +229,18 @@ class StatusOverlay:
         wo die Dialoge auf manchen Setups nicht auf Klicks reagierten.
         """
         def _open():
+            if self._focus_existing("_about_window"):
+                return
             win = self._make_dialog(title)
             if win is None:
                 return
+            self._about_window = win
+            def _on_close():
+                self._about_window = None
+                win.destroy()
+            win.bind("<Escape>", lambda _e: _on_close())
+            win.bind("<Return>", lambda _e: _on_close())
+            win.protocol("WM_DELETE_WINDOW", _on_close)
 
             tk.Label(
                 win, text=version, font=("Segoe UI", 14, "bold"),
@@ -232,7 +263,7 @@ class StatusOverlay:
             link.bind("<Button-1>", lambda _e: webbrowser.open(url))
 
             tk.Button(
-                win, text="OK", width=12, command=win.destroy,
+                win, text="OK", width=12, command=_on_close,
                 font=("Segoe UI", 10),
             ).pack(anchor="e")
 
@@ -248,9 +279,18 @@ class StatusOverlay:
         nicht schließen. Tk-Toplevel im Overlay-Thread ist zuverlässig.
         """
         def _open():
+            if self._focus_existing("_stats_window"):
+                return
             win = self._make_dialog(title)
             if win is None:
                 return
+            self._stats_window = win
+            def _on_close():
+                self._stats_window = None
+                win.destroy()
+            win.bind("<Escape>", lambda _e: _on_close())
+            win.bind("<Return>", lambda _e: _on_close())
+            win.protocol("WM_DELETE_WINDOW", _on_close)
 
             tk.Label(
                 win, text=title, font=("Segoe UI", 14, "bold"),
@@ -262,7 +302,7 @@ class StatusOverlay:
             ).pack(anchor="w", pady=(0, 16))
 
             tk.Button(
-                win, text="OK", width=12, command=win.destroy,
+                win, text="OK", width=12, command=_on_close,
                 font=("Segoe UI", 10),
             ).pack(anchor="e")
 
