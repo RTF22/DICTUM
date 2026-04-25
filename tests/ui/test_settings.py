@@ -45,3 +45,30 @@ def test_dialog_apply_calls_callback_with_config_copy(root, base_config):
     assert received[0] is not base_config
     assert received[0].language == "de"
     dlg.destroy()
+
+
+def test_basics_initial_values_match_config(root):
+    cfg = Config(language="en", whisper_model="medium", whisper_acceleration="cpu",
+                 default_mode="clean", anthropic_api_key="")
+    dlg = SettingsDialog(root, config=cfg, on_apply=lambda c: None)
+    assert dlg._var_input_lang.get() == "en"
+    assert dlg._var_whisper_model.get() == "medium"
+    assert dlg._var_acceleration.get() == "cpu"
+    dlg.destroy()
+
+
+def test_basics_default_mode_only_clean_when_no_valid_key(root):
+    cfg = Config(anthropic_api_key="")
+    dlg = SettingsDialog(root, config=cfg, on_apply=lambda c: None)
+    values = dlg._mode_combo["values"]
+    assert tuple(values) == ("clean",)
+    dlg.destroy()
+
+
+def test_basics_changing_input_lang_updates_draft(root):
+    cfg = Config(language="de")
+    dlg = SettingsDialog(root, config=cfg, on_apply=lambda c: None)
+    dlg._var_input_lang.set("en")
+    dlg._on_input_lang_changed()
+    assert dlg._draft.language == "en"
+    dlg.destroy()
