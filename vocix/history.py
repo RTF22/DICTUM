@@ -77,3 +77,24 @@ class History:
         with self._lock:
             self._entries.clear()
             self._save()
+
+    def dump_text(self, path: Path | None = None) -> Path:
+        """Schreibt eine menschlich lesbare Textdatei aller Einträge
+        (neueste zuerst) und gibt den Pfad zurück."""
+        target = path or self._path.with_suffix(".txt")
+        with self._lock:
+            entries = list(reversed(self._entries))
+        lines = [f"VOCIX Verlauf — {len(entries)} Einträge", "=" * 50, ""]
+        for e in entries:
+            ts = e.get("ts", "")
+            mode = e.get("mode", "")
+            text = e.get("text", "")
+            lines.append(f"[{ts}] ({mode})")
+            lines.append(text)
+            lines.append("")
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text("\n".join(lines), encoding="utf-8")
+        except OSError as e:
+            logger.warning("Verlauf-Textdump fehlgeschlagen: %s", e)
+        return target

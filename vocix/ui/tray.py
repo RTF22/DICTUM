@@ -97,7 +97,7 @@ class TrayApp:
         history: History | None = None,
         stats: Stats | None = None,
         snippets: SnippetExpander | None = None,
-        on_history_reinject: Callable[[str], None] | None = None,
+        on_history_open: Callable[[], None] | None = None,
         on_install_update: Callable[["updater.UpdateInfo"], None] | None = None,
         wakeword_available: bool = False,
         wakeword_enabled: bool = False,
@@ -122,7 +122,7 @@ class TrayApp:
         self._history = history
         self._stats = stats
         self._snippets = snippets
-        self._on_history_reinject = on_history_reinject
+        self._on_history_open = on_history_open
         self._on_install_update = on_install_update
         self._wakeword_available = wakeword_available
         self._wakeword_enabled = wakeword_enabled
@@ -229,8 +229,8 @@ class TrayApp:
 
         items.append(Menu.SEPARATOR)
 
-        if self._history is not None:
-            items.append(MenuItem(t("tray.history"), self._build_history_menu()))
+        if self._history is not None and self._on_history_open is not None:
+            items.append(MenuItem(t("tray.history"), self._open_history))
         if self._stats is not None:
             items.append(MenuItem(t("tray.stats"), self._show_stats))
         if self._snippets is not None:
@@ -259,43 +259,14 @@ class TrayApp:
         items.append(MenuItem(t("tray.quit"), self._quit))
         return Menu(*items)
 
-    def _build_history_menu(self) -> Menu:
-        if self._history is None:
-            return Menu(MenuItem(t("tray.history_empty"), None, enabled=False))
-
-        entries = self._history.entries()
-        if not entries:
-            return Menu(MenuItem(t("tray.history_empty"), None, enabled=False))
-
-        def make_reinject(text: str):
-            return lambda: self._reinject(text)
-
-        items = []
-        for entry in entries:
-            text = entry.get("text", "")
-            preview = text.replace("\n", " ").replace("\r", " ").strip()
-            if len(preview) > 50:
-                preview = preview[:47] + "..."
-            mode = entry.get("mode", "")
-            label = f"[{mode[:1].upper()}] {preview}" if mode else preview
-            items.append(MenuItem(label, make_reinject(text)))
-        items.append(Menu.SEPARATOR)
-        items.append(MenuItem(t("tray.history_clear"), self._clear_history))
-        return Menu(*items)
-
-    def _reinject(self, text: str) -> None:
-        if self._on_history_reinject is not None:
-            self._on_history_reinject(text)
-
-    def _clear_history(self) -> None:
-        if self._history is not None:
-            self._history.clear()
-            self._update_icon()
+    def _open_history(self) -> None:
+        if self._on_history_open is not None:
+            self._on_history_open()
 
     def refresh_history(self) -> None:
-        """Wird nach jedem neuen History-Eintrag aufgerufen, damit das Submenü
-        beim nächsten Öffnen die neuen Einträge zeigt."""
-        self._update_icon()
+        """Tray hat keinen sichtbaren History-State mehr, no-op für API-
+        Kompatibilität."""
+        return
 
     def _edit_snippets(self) -> None:
         if self._snippets is None:

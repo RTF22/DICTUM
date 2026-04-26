@@ -161,7 +161,7 @@ class VocixApp:
             history=self._history,
             stats=self._stats,
             snippets=self._snippets,
-            on_history_reinject=self._reinject_text,
+            on_history_open=self._open_history,
             on_install_update=self._install_update,
             wakeword_available=wakeword.is_available(),
             wakeword_enabled=self._wakeword_enabled,
@@ -275,20 +275,15 @@ class VocixApp:
             state["translate_to_english"] = enabled
         logger.info("Translate-to-English: %s", enabled)
 
-    def _reinject_text(self, text: str) -> None:
-        """Tray-Callback: einen History-Eintrag erneut einfügen.
-
-        Läuft im Tray-Thread; lange Inject-Delays würden das Menü blockieren,
-        daher in eigenen Thread auslagern.
-        """
-        def _worker():
-            try:
-                self._injector.inject(text)
-                self._overlay.show_temporary(t("overlay.inserted"), "done")
-            except Exception as e:
-                logger.error("Re-Inject fehlgeschlagen: %s", e, exc_info=True)
-                self._overlay.show_temporary(t("overlay.error"), "error")
-        threading.Thread(target=_worker, daemon=True).start()
+    def _open_history(self) -> None:
+        """Tray-Callback: schreibt eine Textdatei mit allen History-Einträgen
+        und öffnet sie im Default-Editor."""
+        try:
+            path = self._history.dump_text()
+            os.startfile(str(path))
+        except Exception as e:
+            logger.error("Verlauf-Öffnen fehlgeschlagen: %s", e, exc_info=True)
+            self._overlay.show_temporary(t("overlay.error"), "error")
 
     def _on_record_start(self) -> None:
         # Key-Repeat: Windows feuert on_press_key kontinuierlich, solange die
