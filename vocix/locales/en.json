@@ -226,5 +226,33 @@
       "prompt": "Press the desired key/combo now…",
       "cancel_hint": "(Esc = cancel)"
     }
-  }
+  },
+
+  "provider.anthropic.name": "Anthropic (Claude)",
+  "provider.openai.name": "OpenAI-compatible",
+  "provider.ollama.name": "Ollama (local)",
+
+  "provider.test.success": "Connection OK",
+  "provider.test.error": "Error: {detail}",
+  "provider.test.in_progress": "Testing…",
+
+  "provider.fallback.toast": "{mode} unavailable — using Clean mode",
+
+  "settings.tab.llm": "AI Provider",
+  "settings.llm.section.routing": "Mode Routing",
+  "settings.llm.default": "Default provider",
+  "settings.llm.business_override": "Business",
+  "settings.llm.rage_override": "Rage",
+  "settings.llm.use_default": "Use default",
+  "settings.llm.section.anthropic": "Anthropic (Claude)",
+  "settings.llm.section.openai": "OpenAI-compatible",
+  "settings.llm.section.ollama": "Ollama (local)",
+  "settings.llm.field.api_key": "API key",
+  "settings.llm.field.base_url": "Base URL",
+  "settings.llm.field.model": "Model",
+  "settings.llm.field.timeout": "Timeout (s)",
+  "settings.llm.help.openai_base_url": "Empty = OpenAI. Examples: https://api.groq.com/openai/v1, https://openrouter.ai/api/v1, http://localhost:1234/v1 (LM Studio).",
+  "settings.llm.help.ollama_base_url": "Default: http://localhost:11434. Pull models first with \"ollama pull <name>\".",
+
+  "migration.llm.headline": "New: VOCIX now supports multiple AI providers. Your Claude config keeps working. Settings → AI Provider to add more."
 }
