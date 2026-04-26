@@ -148,6 +148,13 @@ class VocixApp:
             "business": BusinessProcessor(self._config),
             "rage": RageProcessor(self._config),
         }
+        # Toast-Callback verkabeln: bei Provider-Fallback orange Meldung im Overlay
+        def _on_llm_fallback(mode_name: str, reason: str) -> None:
+            msg = t("provider.fallback.toast", mode=mode_name)
+            logger.info("LLM fallback for %s: %s", mode_name, reason)
+            self._overlay.show_temporary(msg, "error")
+        self._processors["business"].set_fallback_callback(_on_llm_fallback)
+        self._processors["rage"].set_fallback_callback(_on_llm_fallback)
 
         # Tray
         self._tray = TrayApp(
@@ -178,6 +185,7 @@ class VocixApp:
         )
 
         self._overlay.show_temporary(t("overlay.ready"), "done")
+        self._maybe_show_llm_migration_hint()
         logger.info("VOCIX ready — mode: %s | language: %s",
                     self._current_mode, self._config.language)
 
@@ -454,6 +462,20 @@ class VocixApp:
         # Main-Thread aus run() entlassen. sys.exit() hier wirkt nur im
         # Tray-Thread (Daemon) und würde den Prozess nicht beenden.
         self._quit_event.set()
+
+    def _maybe_show_llm_migration_hint(self) -> None:
+        """Einmaliger Hinweis bei Update von einer Vorversion mit Alt-Key."""
+        state = load_state()
+        if state.get("llm_migration_seen"):
+            return
+        if not self._config.anthropic_api_key:
+            return
+        # Wenn der User schon ein neues llm-Schema hat, ist nichts zu sagen.
+        if (state.get("llm") or {}).get("providers"):
+            return
+        self._overlay.show_temporary(t("migration.llm.headline"), "error")
+        with update_state() as s:
+            s["llm_migration_seen"] = True
 
     def _show_about(self) -> None:
         """Tray-Callback: About-Dialog im Overlay-Tk-Thread öffnen."""
