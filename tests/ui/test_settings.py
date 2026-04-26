@@ -23,10 +23,11 @@ def base_config():
     return Config(language="de", whisper_model="small", whisper_acceleration="auto")
 
 
-def test_dialog_opens_with_three_tabs(root, base_config):
+def test_dialog_opens_with_four_tabs(root, base_config):
     dlg = SettingsDialog(root, config=base_config, on_apply=lambda c: None)
     assert dlg.notebook is not None
-    assert len(dlg.notebook.tabs()) == 3
+    # Basics, KI-Provider, Erweitert, Expert
+    assert len(dlg.notebook.tabs()) == 4
     dlg.destroy()
 
 
@@ -99,18 +100,19 @@ def test_api_key_masked_display_for_saved_key(root):
     dlg.destroy()
 
 
-def test_api_key_test_marks_validated(root, tmp_path, monkeypatch):
+def test_llm_anthropic_test_marks_validated(root, tmp_path, monkeypatch):
     state_file = tmp_path / "state.json"
     state_file.write_text("{}")
     monkeypatch.setattr("vocix.config.STATE_FILE", state_file)
     cfg = Config(language="de")
     dlg = SettingsDialog(root, config=cfg, on_apply=lambda c: None)
-    dlg._var_api_key.set("sk-ant-test-XYZ")
-    monkeypatch.setattr("vocix.ui.settings._ping_anthropic", lambda key, model, timeout: True)
-    dlg._on_test_api()
+    dlg._var_llm_anth_key.set("sk-ant-test-XYZ")
+    monkeypatch.setattr("vocix.ui.settings._ping_anthropic",
+                        lambda key, model, timeout: (True, ""))
+    dlg._on_llm_test("anthropic")
     import json
-    assert json.loads(state_file.read_text())["anthropic_key_validated"] is True
-    assert dlg._draft.anthropic_api_key == "sk-ant-test-XYZ"
+    state = json.loads(state_file.read_text())
+    assert state["llm"]["providers"]["anthropic"]["validated"] is True
     dlg.destroy()
 
 

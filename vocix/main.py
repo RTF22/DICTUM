@@ -417,7 +417,21 @@ class VocixApp:
 
         with update_state() as s:
             for field_name in self._STATE_PERSISTED_FIELDS:
+                if field_name in ("anthropic_api_key", "anthropic_model", "anthropic_timeout"):
+                    continue
                 s[field_name] = getattr(new_config, field_name)
+            # Neues llm-Schema (führt) — komplett aus draft.llm übernehmen
+            if isinstance(new_config.llm, dict) and new_config.llm:
+                s["llm"] = new_config.llm
+                # Legacy-Felder ausräumen, sobald neues Schema vorhanden ist
+                for legacy in ("anthropic_api_key", "anthropic_model",
+                               "anthropic_timeout", "anthropic_key_validated"):
+                    s.pop(legacy, None)
+            else:
+                # Pre-Migration-Pfad — alte Felder weiter pflegen
+                s["anthropic_api_key"] = new_config.anthropic_api_key
+                s["anthropic_model"] = new_config.anthropic_model
+                s["anthropic_timeout"] = new_config.anthropic_timeout
 
         self._config = new_config
 
