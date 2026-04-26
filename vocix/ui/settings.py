@@ -20,8 +20,7 @@ from vocix.i18n import t
 logger = logging.getLogger(__name__)
 
 
-def _ping_anthropic(api_key: str, model: str, timeout: float) -> bool:
-    """True = Key + Modell akzeptiert."""
+def _ping_anthropic(api_key: str, model: str, timeout: float) -> tuple[bool, str]:
     try:
         from anthropic import Anthropic
         client = Anthropic(api_key=api_key, timeout=timeout)
@@ -29,10 +28,35 @@ def _ping_anthropic(api_key: str, model: str, timeout: float) -> bool:
             model=model, max_tokens=1,
             messages=[{"role": "user", "content": "ok"}],
         )
-        return True
+        return True, ""
     except Exception as e:
         logger.info("Anthropic ping failed: %s", e)
-        return False
+        return False, str(e)
+
+
+def _ping_openai(api_key: str, base_url: str, model: str, timeout: float) -> tuple[bool, str]:
+    try:
+        from vocix.processing.providers import ProviderConfig
+        from vocix.processing.providers.openai_provider import OpenAICompatibleProvider
+        cfg = ProviderConfig(kind="openai", api_key=api_key, base_url=base_url,
+                             model=model or "gpt-4o-mini", timeout=timeout)
+        p = OpenAICompatibleProvider(cfg)
+        p.complete(system="ping", user="ok", max_tokens=1)
+        return True, ""
+    except Exception as e:
+        return False, str(e)
+
+
+def _ping_ollama(base_url: str, model: str, timeout: float) -> tuple[bool, str]:
+    try:
+        from vocix.processing.providers import ProviderConfig
+        from vocix.processing.providers.ollama_provider import OllamaProvider
+        cfg = ProviderConfig(kind="ollama", base_url=base_url, model=model, timeout=timeout)
+        p = OllamaProvider(cfg)
+        p.complete(system="ping", user="ok", max_tokens=1)
+        return True, ""
+    except Exception as e:
+        return False, str(e)
 
 
 class SettingsDialog:
@@ -65,13 +89,16 @@ class SettingsDialog:
         self.notebook.pack(fill="both", expand=True, padx=10, pady=(10, 0))
 
         self._tab_basics = ttk.Frame(self.notebook, padding=12)
+        self._tab_llm = ttk.Frame(self.notebook, padding=12)
         self._tab_advanced = ttk.Frame(self.notebook, padding=12)
         self._tab_expert = ttk.Frame(self.notebook, padding=12)
         self.notebook.add(self._tab_basics, text=t("settings.tab.basics"))
+        self.notebook.add(self._tab_llm, text=t("settings.tab.llm"))
         self.notebook.add(self._tab_advanced, text=t("settings.tab.advanced"))
         self.notebook.add(self._tab_expert, text=t("settings.tab.expert"))
 
         self._build_basics(self._tab_basics)
+        self._build_llm(self._tab_llm)
         self._build_advanced(self._tab_advanced)
         self._build_expert(self._tab_expert)
 
@@ -189,33 +216,6 @@ class SettingsDialog:
                    ).grid(row=row, column=2, padx=4)
         row += 1
 
-        # API-Key
-        ttk.Label(frame, text=t("settings.field.api_key")).grid(row=row, column=0, sticky="w", pady=4)
-        self._var_api_key = tk.StringVar(value=self._displayed_api_key())
-        self._api_entry = ttk.Entry(frame, textvariable=self._var_api_key, show="*", width=30)
-        self._api_entry.grid(row=row, column=1, sticky="ew")
-
-        def _on_focus_in(_e):
-            self._var_api_key.set(self._draft.anthropic_api_key or "")
-            self._api_entry.config(show="")
-
-        def _on_focus_out(_e):
-            new = self._var_api_key.get().strip()
-            self._draft.anthropic_api_key = new
-            self._var_api_key.set(self._displayed_api_key())
-            self._api_entry.config(show="*")
-
-        self._api_entry.bind("<FocusIn>", _on_focus_in)
-        self._api_entry.bind("<FocusOut>", _on_focus_out)
-
-        test_btn = ttk.Button(frame, text=t("settings.button.test"), command=self._on_test_api)
-        test_btn.grid(row=row, column=2, padx=4)
-        Tooltip(test_btn, lambda: t("settings.tooltip.test_button"))
-        self._var_api_status = tk.StringVar(value=t("settings.status.api_unchecked"))
-        ttk.Label(frame, textvariable=self._var_api_status).grid(row=row, column=3, sticky="w")
-        Tooltip(self._api_entry, lambda: t("settings.tooltip.api_key"))
-        row += 1
-
         # Default Mode
         ttk.Label(frame, text=t("settings.field.default_mode")).grid(row=row, column=0, sticky="w", pady=4)
         self._var_default_mode = tk.StringVar(value=self._draft.default_mode)
@@ -273,7 +273,7 @@ class SettingsDialog:
             self._var_input_lang.set("")
 
     def _update_mode_combo_values(self) -> None:
-        valid = bool(self._draft.anthropic_api_key) and self._key_validated()
+        valid = self._any_llm_validated()
         self._mode_combo["values"] = ("clean", "business", "rage") if valid else ("clean",)
         if not valid and self._var_default_mode.get() != "clean":
             self._var_default_mode.set("clean")
@@ -283,8 +283,16 @@ class SettingsDialog:
         from vocix.config import load_state
         return bool(load_state().get("anthropic_key_validated"))
 
+    def _any_llm_validated(self) -> bool:
+        """B/C nur freischalten, wenn der für sie gewählte Provider validiert ist."""
+        for m in ("business", "rage"):
+            slot = self._draft.llm_mode_slot(m)
+            if not self._draft.llm_validated(slot):
+                return False
+        return True
+
     def _refresh_api_gated_widgets(self) -> None:
-        valid = bool(self._draft.anthropic_api_key) and self._key_validated()
+        valid = self._any_llm_validated()
         for attr in ("hotkey_mode_b", "hotkey_mode_c"):
             cb, btn = self._hotkey_widgets[attr]
             state = ["!disabled"] if valid else ["disabled"]
@@ -311,25 +319,6 @@ class SettingsDialog:
         if len(key) <= 12:
             return key
         return f"{key[:7]}…{key[-4:]}"
-
-    def _on_test_api(self) -> None:
-        from vocix.config import update_state
-        key = self._var_api_key.get().strip()
-        if not key:
-            self._var_api_status.set(t("settings.status.api_invalid"))
-            return
-        self._var_api_status.set("…")
-        self._win.update_idletasks()
-        ok = _ping_anthropic(key, self._draft.anthropic_model, self._draft.anthropic_timeout)
-        self._draft.anthropic_api_key = key
-        with update_state() as s:
-            s["anthropic_key_validated"] = ok
-        if ok:
-            self._var_api_status.set(t("settings.status.api_valid"))
-        else:
-            self._var_api_status.set(t("settings.status.api_invalid"))
-        self._refresh_api_gated_widgets()
-        self._show_anthropic_section(ok)
 
     def _build_advanced(self, frame: ttk.Frame) -> None:
         from tkinter import filedialog
@@ -510,36 +499,6 @@ class SettingsDialog:
                    ).grid(row=row, column=2, padx=4)
         row += 1
 
-        # Anthropic
-        self._anthropic_frame = ttk.LabelFrame(frame, text=t("settings.section.anthropic"), padding=8)
-        self._anthropic_locked_label = ttk.Label(frame, text=t("settings.status.api_locked"),
-                                                 foreground="#888")
-
-        ttk.Label(self._anthropic_frame, text=t("settings.field.anthropic_model")).grid(row=0, column=0, sticky="w", pady=4)
-        self._var_anth_model = tk.StringVar(value=self._draft.anthropic_model)
-        ac = ttk.Combobox(self._anthropic_frame, textvariable=self._var_anth_model, width=36,
-                          values=("claude-sonnet-4-6", "claude-opus-4-7", "claude-haiku-4-5-20251001"))
-        ac.grid(row=0, column=1, sticky="w")
-        ac.bind("<FocusOut>",
-                lambda _e: setattr(self._draft, "anthropic_model", self._var_anth_model.get().strip()))
-        Tooltip(ac, lambda: t("settings.tooltip.anthropic_model"))
-        HelpButton(self._anthropic_frame,
-                   title_provider=lambda: t("settings.help.anthropic_model.title"),
-                   body_provider=lambda: t("settings.help.anthropic_model.body")
-                   ).grid(row=0, column=2, padx=4)
-
-        ttk.Label(self._anthropic_frame, text=t("settings.field.anthropic_timeout")).grid(row=1, column=0, sticky="w", pady=4)
-        self._var_anth_timeout = tk.DoubleVar(value=self._draft.anthropic_timeout)
-        timeout_spin = ttk.Spinbox(self._anthropic_frame, from_=5, to=60, increment=1, width=8,
-                                   textvariable=self._var_anth_timeout,
-                                   command=lambda: setattr(self._draft, "anthropic_timeout",
-                                                          float(self._var_anth_timeout.get())))
-        timeout_spin.grid(row=1, column=1, sticky="w")
-        Tooltip(timeout_spin, lambda: t("settings.tooltip.anthropic_timeout"))
-
-        self._show_anthropic_section(self._key_validated())
-        row += 1
-
         # Buttons (Reihe 4 vorgeschoben damit Anthropic darüber Platz hat)
         cfg_btn = ttk.Button(frame, text=t("settings.button.open_config_dir"),
                              command=lambda: os.startfile(self._config_dir()))
@@ -553,14 +512,6 @@ class SettingsDialog:
     def _config_dir(self) -> str:
         from vocix.config import STATE_FILE
         return str(STATE_FILE.parent)
-
-    def _show_anthropic_section(self, valid: bool) -> None:
-        if valid:
-            self._anthropic_locked_label.grid_forget()
-            self._anthropic_frame.grid(row=2, column=0, columnspan=3, sticky="ew", pady=(20, 4))
-        else:
-            self._anthropic_frame.grid_forget()
-            self._anthropic_locked_label.grid(row=2, column=0, columnspan=3, sticky="w", pady=(20, 4))
 
     def _on_factory_reset(self) -> None:
         from tkinter import messagebox
@@ -592,11 +543,13 @@ class SettingsDialog:
     def _on_apply(self) -> None:
         if not self._validate():
             return
+        self._persist_llm_draft()
         self._on_apply_cb(replace(self._draft))
 
     def _on_ok(self) -> None:
         if not self._validate():
             return
+        self._persist_llm_draft()
         self._on_apply_cb(replace(self._draft))
         self.destroy()
 
@@ -613,6 +566,215 @@ class SettingsDialog:
             self._win.destroy()
         except tk.TclError:
             pass
+
+    def _build_llm(self, frame: ttk.Frame) -> None:
+        for col in (0, 1, 2):
+            frame.columnconfigure(col, weight=1 if col == 1 else 0)
+
+        # ---- Routing-Sektion (oben) -----------------------------------
+        routing = ttk.LabelFrame(frame, text=t("settings.llm.section.routing"), padding=8)
+        routing.grid(row=0, column=0, columnspan=3, sticky="ew", pady=(0, 8))
+        for col in (0, 1):
+            routing.columnconfigure(col, weight=0)
+        routing.columnconfigure(2, weight=1)
+
+        slot_labels = (
+            ("anthropic", t("provider.anthropic.name")),
+            ("openai", t("provider.openai.name")),
+            ("ollama", t("provider.ollama.name")),
+        )
+        slot_values = [k for k, _ in slot_labels]
+
+        # Default
+        ttk.Label(routing, text=t("settings.llm.default")).grid(row=0, column=0, sticky="w", pady=2)
+        self._var_llm_default = tk.StringVar(value=self._draft.llm_default_slot())
+        cb_default = ttk.Combobox(routing, state="readonly", width=22, textvariable=self._var_llm_default,
+                                  values=tuple(slot_values))
+        cb_default.grid(row=0, column=1, sticky="w")
+        cb_default.bind("<<ComboboxSelected>>", lambda _e: self._on_routing_changed())
+
+        # Business override
+        ttk.Label(routing, text=t("settings.llm.business_override")).grid(row=1, column=0, sticky="w", pady=2)
+        self._var_llm_business = tk.StringVar(value=(self._draft.llm.get("business") or "__default__"))
+        cb_b = ttk.Combobox(routing, state="readonly", width=22, textvariable=self._var_llm_business,
+                            values=("__default__", *slot_values))
+        cb_b.grid(row=1, column=1, sticky="w")
+        cb_b.bind("<<ComboboxSelected>>", lambda _e: self._on_routing_changed())
+
+        # Rage override
+        ttk.Label(routing, text=t("settings.llm.rage_override")).grid(row=2, column=0, sticky="w", pady=2)
+        self._var_llm_rage = tk.StringVar(value=(self._draft.llm.get("rage") or "__default__"))
+        cb_r = ttk.Combobox(routing, state="readonly", width=22, textvariable=self._var_llm_rage,
+                            values=("__default__", *slot_values))
+        cb_r.grid(row=2, column=1, sticky="w")
+        cb_r.bind("<<ComboboxSelected>>", lambda _e: self._on_routing_changed())
+
+        # ---- Provider-Karten -----------------------------------------
+        self._llm_status_vars: dict[str, tk.StringVar] = {}
+
+        # Anthropic
+        anth = ttk.LabelFrame(frame, text=t("settings.llm.section.anthropic"), padding=8)
+        anth.grid(row=1, column=0, columnspan=3, sticky="ew", pady=4)
+        anth.columnconfigure(1, weight=1)
+        self._var_llm_anth_key = tk.StringVar(value=self._draft.anthropic_api_key or "")
+        self._var_llm_anth_model = tk.StringVar(value=self._draft.anthropic_model)
+        self._var_llm_anth_timeout = tk.DoubleVar(value=self._draft.anthropic_timeout)
+        self._llm_status_vars["anthropic"] = tk.StringVar(value="")
+        self._build_provider_card(
+            anth, slot_id="anthropic",
+            fields=[
+                ("api_key", self._var_llm_anth_key, "password"),
+                ("model", self._var_llm_anth_model, "text"),
+                ("timeout", self._var_llm_anth_timeout, "spin"),
+            ],
+        )
+
+        # OpenAI-kompatibel
+        oai = ttk.LabelFrame(frame, text=t("settings.llm.section.openai"), padding=8)
+        oai.grid(row=2, column=0, columnspan=3, sticky="ew", pady=4)
+        oai.columnconfigure(1, weight=1)
+        slot_oai = (self._draft.llm.get("providers") or {}).get("openai") or {}
+        self._var_llm_oai_key = tk.StringVar(value=slot_oai.get("api_key", ""))
+        self._var_llm_oai_url = tk.StringVar(value=slot_oai.get("base_url", ""))
+        self._var_llm_oai_model = tk.StringVar(value=slot_oai.get("model", "gpt-4o-mini"))
+        self._var_llm_oai_timeout = tk.DoubleVar(value=slot_oai.get("timeout", 15.0))
+        self._llm_status_vars["openai"] = tk.StringVar(value="")
+        self._build_provider_card(
+            oai, slot_id="openai",
+            fields=[
+                ("base_url", self._var_llm_oai_url, "text"),
+                ("api_key", self._var_llm_oai_key, "password"),
+                ("model", self._var_llm_oai_model, "text"),
+                ("timeout", self._var_llm_oai_timeout, "spin"),
+            ],
+            help_key="settings.llm.help.openai_base_url",
+        )
+
+        # Ollama
+        oll = ttk.LabelFrame(frame, text=t("settings.llm.section.ollama"), padding=8)
+        oll.grid(row=3, column=0, columnspan=3, sticky="ew", pady=4)
+        oll.columnconfigure(1, weight=1)
+        slot_oll = (self._draft.llm.get("providers") or {}).get("ollama") or {}
+        self._var_llm_oll_url = tk.StringVar(value=slot_oll.get("base_url", "http://localhost:11434"))
+        self._var_llm_oll_model = tk.StringVar(value=slot_oll.get("model", "llama3.1:8b"))
+        self._var_llm_oll_timeout = tk.DoubleVar(value=slot_oll.get("timeout", 30.0))
+        self._llm_status_vars["ollama"] = tk.StringVar(value="")
+        self._build_provider_card(
+            oll, slot_id="ollama",
+            fields=[
+                ("base_url", self._var_llm_oll_url, "text"),
+                ("model", self._var_llm_oll_model, "text"),
+                ("timeout", self._var_llm_oll_timeout, "spin"),
+            ],
+            help_key="settings.llm.help.ollama_base_url",
+        )
+
+    def _build_provider_card(
+        self,
+        parent: ttk.LabelFrame,
+        *,
+        slot_id: str,
+        fields: list[tuple[str, tk.Variable, str]],
+        help_key: str | None = None,
+    ) -> None:
+        row = 0
+        for fname, var, kind in fields:
+            ttk.Label(parent, text=t(f"settings.llm.field.{fname}")).grid(row=row, column=0, sticky="w", pady=2)
+            if kind == "password":
+                e = ttk.Entry(parent, textvariable=var, show="*", width=36)
+            elif kind == "spin":
+                e = ttk.Spinbox(parent, from_=1, to=120, increment=1, width=8, textvariable=var)
+            else:
+                e = ttk.Entry(parent, textvariable=var, width=36)
+            e.grid(row=row, column=1, sticky="ew")
+            row += 1
+
+        if help_key:
+            ttk.Label(parent, text=t(help_key), foreground="#666", wraplength=560).grid(
+                row=row, column=0, columnspan=2, sticky="w", pady=(2, 4)
+            )
+            row += 1
+
+        btn = ttk.Button(parent, text=t("settings.button.test"),
+                         command=lambda s=slot_id: self._on_llm_test(s))
+        btn.grid(row=row, column=0, sticky="w", pady=(4, 0))
+        ttk.Label(parent, textvariable=self._llm_status_vars[slot_id]).grid(
+            row=row, column=1, sticky="w", padx=(8, 0), pady=(4, 0)
+        )
+
+    def _on_routing_changed(self) -> None:
+        self._draft.llm.setdefault("providers", {})
+        self._draft.llm["default"] = self._var_llm_default.get()
+        b = self._var_llm_business.get()
+        r = self._var_llm_rage.get()
+        self._draft.llm["business"] = None if b == "__default__" else b
+        self._draft.llm["rage"] = None if r == "__default__" else r
+        self._refresh_api_gated_widgets()
+
+    def _on_llm_test(self, slot_id: str) -> None:
+        from vocix.config import update_state
+        status_var = self._llm_status_vars[slot_id]
+        status_var.set(t("provider.test.in_progress"))
+        self._win.update_idletasks()
+
+        if slot_id == "anthropic":
+            ok, err = _ping_anthropic(
+                self._var_llm_anth_key.get().strip(),
+                self._var_llm_anth_model.get().strip(),
+                float(self._var_llm_anth_timeout.get()),
+            )
+        elif slot_id == "openai":
+            ok, err = _ping_openai(
+                self._var_llm_oai_key.get().strip(),
+                self._var_llm_oai_url.get().strip(),
+                self._var_llm_oai_model.get().strip(),
+                float(self._var_llm_oai_timeout.get()),
+            )
+        elif slot_id == "ollama":
+            ok, err = _ping_ollama(
+                self._var_llm_oll_url.get().strip(),
+                self._var_llm_oll_model.get().strip(),
+                float(self._var_llm_oll_timeout.get()),
+            )
+        else:
+            ok, err = False, f"unknown slot {slot_id}"
+
+        with update_state() as s:
+            s.setdefault("llm", {}).setdefault("providers", {}).setdefault(slot_id, {})
+            s["llm"]["providers"][slot_id]["validated"] = ok
+
+        if ok:
+            status_var.set(t("provider.test.success"))
+        else:
+            short = (err or "")[:80]
+            status_var.set(t("provider.test.error", detail=short))
+
+        self._refresh_api_gated_widgets()
+
+    def _persist_llm_draft(self) -> None:
+        """Schreibt die UI-Variablen ins draft.llm-Schema und entfernt Legacy-Felder."""
+        providers = self._draft.llm.setdefault("providers", {})
+        providers["anthropic"] = {
+            "api_key": self._var_llm_anth_key.get().strip(),
+            "model": self._var_llm_anth_model.get().strip(),
+            "timeout": float(self._var_llm_anth_timeout.get()),
+            "validated": providers.get("anthropic", {}).get("validated", False),
+        }
+        providers["openai"] = {
+            "api_key": self._var_llm_oai_key.get().strip(),
+            "base_url": self._var_llm_oai_url.get().strip(),
+            "model": self._var_llm_oai_model.get().strip(),
+            "timeout": float(self._var_llm_oai_timeout.get()),
+            "validated": providers.get("openai", {}).get("validated", False),
+        }
+        providers["ollama"] = {
+            "base_url": self._var_llm_oll_url.get().strip(),
+            "model": self._var_llm_oll_model.get().strip(),
+            "timeout": float(self._var_llm_oll_timeout.get()),
+        }
+        self._draft.anthropic_api_key = providers["anthropic"]["api_key"]
+        self._draft.anthropic_model = providers["anthropic"]["model"]
+        self._draft.anthropic_timeout = providers["anthropic"]["timeout"]
 
     def _on_external_language_change(self, _code: str) -> None:
         """Tray switched the UI language while this dialog is open. We can't
