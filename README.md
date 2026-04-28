@@ -20,8 +20,10 @@ Local voice dictation app for Windows 11 with a global hotkey. Capture speech, t
 - **Push-to-Talk** via global hotkey (default: `Pause`)
 - **Three modes:**
   - **A — Clean:** Clean transcription; strips filler words (um, uh, like, ...) with light corrections
-  - **B — Business:** Rewrites speech into professional business language (Claude API)
-  - **C — Rage:** De-escalates aggressive language into polite phrasing (Claude API)
+  - **B — Business:** Rewrites speech into professional business language (LLM-powered)
+  - **C — Rage:** De-escalates aggressive language into polite phrasing (LLM-powered)
+- **Multi-provider LLM for modes B and C** — pick your backend in the settings dialog: Anthropic Claude, any OpenAI-compatible API (OpenAI, Groq, OpenRouter, LM Studio, llama.cpp-server, vLLM via `base_url`) or local Ollama models. Per-mode override (e.g. Business on cloud Claude, Rage on local Llama). Provider failures fall back to Clean mode and surface an orange toast — no more silent degradation.
+- **Settings dialog** in the tray menu — four tabs (Basics / Advanced / Expert / AI Provider) with Test buttons, hotkey capture and per-mode validation
 - **System tray** with a colour-coded microphone icon and mode switching
 - **Status overlay** with a live VU meter while recording — instant visual feedback that the mic is picking up signal
 - **History of the last 20 dictations** in the tray — click an entry to re-insert it (saves your text when the target window has changed)
@@ -42,7 +44,10 @@ Local voice dictation app for Windows 11 with a global hotkey. Capture speech, t
 
 - Windows 10/11
 - Microphone
-- Optional: [Anthropic API key](https://console.anthropic.com/) for modes B and C
+- Optional for modes B and C: any one of
+  - [Anthropic API key](https://console.anthropic.com/), or
+  - an OpenAI-compatible endpoint (OpenAI, Groq, OpenRouter, LM Studio, llama.cpp-server, vLLM …), or
+  - a local [Ollama](https://ollama.com/) install — no API key needed
 
 ## Installation
 
@@ -102,13 +107,35 @@ The result lives in `dist\VOCIX\` — the whole folder is portable.
 
 ## Configuration
 
-All settings are controlled via the `.env` file in the application directory:
+The recommended way to configure VOCIX is the **Settings dialog** (tray icon → Settings). The `AI Provider` tab carries three slots — Anthropic, OpenAI-compatible and Ollama — each with its own Test button. Pick a default and optionally override per mode (Business / Rage).
+
+For headless setups everything is also available via `.env`:
 
 ```ini
-# Anthropic API key (optional, for modes B and C)
-ANTHROPIC_API_KEY=sk-ant-your-key-here
+# --- LLM providers (modes B and C) -----------------------------------------
+# Pick a default provider and optionally override per mode.
+VOCIX_LLM_DEFAULT=anthropic            # anthropic | openai | ollama
+VOCIX_LLM_BUSINESS=                    # leave empty to use the default
+VOCIX_LLM_RAGE=
 
-# Language — controls UI, Claude prompts and Whisper STT (de, en)
+# Anthropic Claude
+VOCIX_LLM_ANTHROPIC_API_KEY=sk-ant-your-key-here
+VOCIX_LLM_ANTHROPIC_MODEL=claude-sonnet-4-6
+VOCIX_LLM_ANTHROPIC_TIMEOUT=15
+
+# OpenAI-compatible (OpenAI, Groq, OpenRouter, LM Studio, llama.cpp, vLLM …)
+VOCIX_LLM_OPENAI_API_KEY=
+VOCIX_LLM_OPENAI_BASE_URL=https://api.openai.com/v1
+VOCIX_LLM_OPENAI_MODEL=gpt-4o-mini
+VOCIX_LLM_OPENAI_TIMEOUT=15
+
+# Ollama (local, no API key)
+VOCIX_LLM_OLLAMA_BASE_URL=http://localhost:11434
+VOCIX_LLM_OLLAMA_MODEL=llama3.1
+VOCIX_LLM_OLLAMA_TIMEOUT=30
+
+# --- App ------------------------------------------------------------------
+# Language — controls UI, LLM prompts and Whisper STT (de, en)
 # The tray selection (stored in state.json) overrides this value.
 VOCIX_LANGUAGE=en
 
@@ -134,7 +161,7 @@ VOCIX_LOG_FILE=vocix.log
 VOCIX_RDP_MODE=true
 ```
 
-Without an API key, modes B and C automatically fall back to mode A (Clean).
+Without any configured provider, modes B and C automatically fall back to mode A (Clean). Configurations from VOCIX 1.3.x (`ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `ANTHROPIC_TIMEOUT`) keep working unchanged — saving once in the new settings tab migrates them.
 
 **Env precedence:** variables already present in the process environment are not overridden by the `.env` file (default behaviour of `python-dotenv`). To temporarily override a value, export it before launching the app.
 
@@ -166,7 +193,7 @@ Without an API key, modes B and C automatically fall back to mode A (Clean).
 | Hotkey doesn't respond | Run the app as administrator |
 | Laptop without a `Pause` key | Set `VOCIX_HOTKEY_RECORD=scroll lock` (or `f7`) in `.env` |
 | "Microphone unavailable" | Check microphone permissions in Windows settings |
-| Modes B/C only return Clean results | Verify `ANTHROPIC_API_KEY` in `.env` |
+| Modes B/C only return Clean results | Open Settings → AI Provider, configure at least one slot and hit Test |
 | Whisper download fails | Check your internet connection; configure proxy/firewall if needed |
 | Text contains wrong characters | Make sure the target app supports Ctrl+V / paste |
 | RDP: text is not inserted | Set `VOCIX_RDP_MODE=true` in `.env` |
@@ -186,12 +213,15 @@ vocix/
 ├── processing/
 │   ├── base.py          # Abstract processor interface
 │   ├── clean.py         # Mode A: filler-word cleanup (local)
-│   ├── business.py      # Mode B: business language (Claude API)
-│   └── rage.py          # Mode C: de-escalation (Claude API)
+│   ├── llm_backed.py    # Shared LLM-backed processor (used by B/C)
+│   ├── business.py      # Mode B: business language
+│   ├── rage.py          # Mode C: de-escalation
+│   └── providers/       # Anthropic / OpenAI-compatible / Ollama backends
 ├── output/injector.py   # Clipboard-based text insertion
 └── ui/
     ├── tray.py          # System tray with microphone icon
-    └── overlay.py       # Status overlay (tkinter)
+    ├── overlay.py       # Status overlay (tkinter)
+    └── settings.py      # Settings dialog (Basics / Advanced / Expert / AI Provider)
 ```
 
 ## License

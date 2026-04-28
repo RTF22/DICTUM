@@ -20,8 +20,10 @@ Lokale Sprachdiktion-App für Windows 11 mit globalem Hotkey. Sprache aufnehmen,
 - **Push-to-Talk** per globalem Hotkey (Standard: `Pause`)
 - **Drei Modi:**
   - **A — Clean:** Saubere Transkription, entfernt Füllwörter (äh, ähm, also, ...), leichte Korrektur
-  - **B — Business:** Wandelt Sprache in professionelle Geschäftssprache um (Claude API)
-  - **C — Rage:** Deeskaliert aggressive Sprache in höfliche Formulierungen (Claude API)
+  - **B — Business:** Wandelt Sprache in professionelle Geschäftssprache um (LLM-gestützt)
+  - **C — Rage:** Deeskaliert aggressive Sprache in höfliche Formulierungen (LLM-gestützt)
+- **Multi-Provider-LLM für Modi B und C** — Backend frei wählbar im Einstellungsdialog: Anthropic Claude, jede OpenAI-kompatible API (OpenAI, Groq, OpenRouter, LM Studio, llama.cpp-Server, vLLM via `base_url`) oder lokale Ollama-Modelle. Per-Mode-Override (z. B. Business über Cloud-Claude, Rage über lokales Llama). Provider-Fehler fallen auf Clean-Modus zurück und zeigen einen orangenen Toast — kein stiller Fallback mehr.
+- **Einstellungsdialog** im Tray-Menü — vier Tabs (Basics / Erweitert / Expert / KI-Provider) mit Test-Buttons, Hotkey-Capture und Validierung pro Modus
 - **System Tray** mit farbcodiertem Mikrofon-Icon und Moduswechsel
 - **Status-Overlay** mit Live-VU-Meter während der Aufnahme — sofortiges visuelles Feedback, dass das Mikrofon Pegel sieht
 - **Verlauf der letzten 20 Diktate** im Tray — Klick auf einen Eintrag fügt ihn erneut ein (rettet Text, wenn das Zielfenster gewechselt wurde)
@@ -41,7 +43,10 @@ Lokale Sprachdiktion-App für Windows 11 mit globalem Hotkey. Sprache aufnehmen,
 
 - Windows 10/11
 - Mikrofon
-- Optional: [Anthropic API-Key](https://console.anthropic.com/) für Modus B und C
+- Optional für Modus B und C: einer von
+  - [Anthropic API-Key](https://console.anthropic.com/), oder
+  - OpenAI-kompatibler Endpoint (OpenAI, Groq, OpenRouter, LM Studio, llama.cpp-Server, vLLM …), oder
+  - lokales [Ollama](https://ollama.com/) — kein API-Key nötig
 
 ## Installation
 
@@ -101,13 +106,35 @@ Ergebnis liegt in `dist\VOCIX\` — der gesamte Ordner ist portabel.
 
 ## Konfiguration
 
-Alle Einstellungen werden über die `.env`-Datei im Anwendungsverzeichnis gesteuert:
+Empfohlener Weg: **Einstellungsdialog** (Tray-Icon → Einstellungen…). Der Tab `KI-Provider` hat drei Slots — Anthropic, OpenAI-kompatibel und Ollama — jeweils mit eigenem Test-Button. Default wählen und optional pro Modus (Business / Rage) überschreiben.
+
+Für Headless-Setups stehen alle Werte zusätzlich in der `.env` zur Verfügung:
 
 ```ini
-# Anthropic API-Key (optional, für Modus B und C)
-ANTHROPIC_API_KEY=sk-ant-dein-key-hier
+# --- LLM-Provider (Modus B und C) ----------------------------------------
+# Default-Provider und optionaler Per-Mode-Override.
+VOCIX_LLM_DEFAULT=anthropic            # anthropic | openai | ollama
+VOCIX_LLM_BUSINESS=                    # leer = Default verwenden
+VOCIX_LLM_RAGE=
 
-# Sprache — steuert UI, Claude-Prompts und Whisper-STT (de, en)
+# Anthropic Claude
+VOCIX_LLM_ANTHROPIC_API_KEY=sk-ant-dein-key-hier
+VOCIX_LLM_ANTHROPIC_MODEL=claude-sonnet-4-6
+VOCIX_LLM_ANTHROPIC_TIMEOUT=15
+
+# OpenAI-kompatibel (OpenAI, Groq, OpenRouter, LM Studio, llama.cpp, vLLM …)
+VOCIX_LLM_OPENAI_API_KEY=
+VOCIX_LLM_OPENAI_BASE_URL=https://api.openai.com/v1
+VOCIX_LLM_OPENAI_MODEL=gpt-4o-mini
+VOCIX_LLM_OPENAI_TIMEOUT=15
+
+# Ollama (lokal, kein API-Key)
+VOCIX_LLM_OLLAMA_BASE_URL=http://localhost:11434
+VOCIX_LLM_OLLAMA_MODEL=llama3.1
+VOCIX_LLM_OLLAMA_TIMEOUT=30
+
+# --- App ------------------------------------------------------------------
+# Sprache — steuert UI, LLM-Prompts und Whisper-STT (de, en)
 # Tray-Auswahl (in state.json) überschreibt diesen Wert.
 VOCIX_LANGUAGE=de
 
@@ -133,7 +160,7 @@ VOCIX_LOG_FILE=vocix.log
 VOCIX_RDP_MODE=true
 ```
 
-Ohne API-Key fallen Modus B und C automatisch auf Modus A (Clean) zurück.
+Ohne konfigurierten Provider fallen Modus B und C automatisch auf Modus A (Clean) zurück. Konfigurationen aus VOCIX 1.3.x (`ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `ANTHROPIC_TIMEOUT`) laufen unverändert weiter — einmal im neuen Tab speichern migriert sie.
 
 **Env-Priorität:** Variablen, die bereits in der Prozess-Umgebung gesetzt sind, überschreiben Werte aus der `.env` nicht (Standard-Verhalten von `python-dotenv`). Wer einen Wert temporär überschreiben möchte, exportiert ihn vor dem Start der App.
 
@@ -165,7 +192,7 @@ Ohne API-Key fallen Modus B und C automatisch auf Modus A (Clean) zurück.
 | Hotkey reagiert nicht | App als Administrator starten |
 | Laptop ohne `Pause`-Taste | `VOCIX_HOTKEY_RECORD=scroll lock` (oder `f7`) in `.env` setzen |
 | „Mikrofon nicht verfügbar" | Mikrofon in Windows-Einstellungen prüfen, Zugriff erlauben |
-| Modus B/C liefern nur Clean-Ergebnis | `ANTHROPIC_API_KEY` in `.env` prüfen |
+| Modus B/C liefern nur Clean-Ergebnis | Einstellungen → KI-Provider öffnen, mindestens einen Slot konfigurieren und „Test" drücken |
 | Whisper-Download schlägt fehl | Internetverbindung prüfen, Proxy/Firewall ggf. konfigurieren |
 | Text enthält falsche Zeichen | Sicherstellen, dass die Zielanwendung Ctrl+V / Einfügen unterstützt |
 | RDP: Text wird nicht eingefügt | `VOCIX_RDP_MODE=true` in `.env` setzen |
@@ -183,12 +210,15 @@ vocix/
 ├── processing/
 │   ├── base.py          # Abstrakte Prozessor-Schnittstelle
 │   ├── clean.py         # Modus A: Füllwörter + Korrektur (lokal)
-│   ├── business.py      # Modus B: Geschäftssprache (Claude API)
-│   └── rage.py          # Modus C: Deeskalation (Claude API)
+│   ├── llm_backed.py    # Gemeinsamer LLM-gestützter Prozessor (B/C)
+│   ├── business.py      # Modus B: Geschäftssprache
+│   ├── rage.py          # Modus C: Deeskalation
+│   └── providers/       # Anthropic / OpenAI-kompatibel / Ollama Backends
 ├── output/injector.py   # Clipboard-basierte Texteinfügung
 └── ui/
     ├── tray.py          # System Tray mit Mikrofon-Icon
-    └── overlay.py       # Status-Overlay (tkinter)
+    ├── overlay.py       # Status-Overlay (tkinter)
+    └── settings.py      # Einstellungsdialog (Basics / Erweitert / Expert / KI-Provider)
 ```
 
 ## Lizenz

@@ -408,8 +408,8 @@ footer { background: var(--color-brand-navy); border-top: 3px solid var(--color-
       <div class="feature-card">
         <div class="feature-icon-box" style="background: #e0d9ff;">🤖</div>
         <div>
-          <div class="feature-title" data-i18n="feat5_title">Claude-Powered Intelligence</div>
-          <p class="feature-desc" data-i18n="feat5_desc">Business and Rage modes use Anthropic's Claude for nuanced language transformation — not just autocorrect, real intelligence.</p>
+          <div class="feature-title" data-i18n="feat5_title">Multi-Provider LLM</div>
+          <p class="feature-desc" data-i18n="feat5_desc">Business and Rage modes run on the LLM you choose: Anthropic Claude, any OpenAI-compatible API (OpenAI, Groq, OpenRouter, LM Studio …) or local Ollama models. Per-mode override — cloud where it matters, local where it counts.</p>
         </div>
       </div>
       <div class="feature-card">
@@ -463,7 +463,7 @@ footer { background: var(--color-brand-navy); border-top: 3px solid var(--color-
         <ul class="req-list">
           <li><span class="req-dot"></span><span data-i18n="req1">Windows 10 or Windows 11</span></li>
           <li><span class="req-dot"></span><span data-i18n="req2">Microphone — any USB or built-in mic works</span></li>
-          <li><span class="req-dot"></span><span data-i18n="req3">Optional: Claude API key (for Business &amp; Rage modes)</span></li>
+          <li><span class="req-dot"></span><span data-i18n="req3">Optional for Business &amp; Rage: Anthropic, OpenAI-compatible API, or local Ollama</span></li>
         </ul>
         <div class="download-ctas">
           <a class="btn-primary" href="https://github.com/RTF22/VOCIX/releases" target="_blank">
@@ -604,8 +604,8 @@ const T = {
     feat3_desc: "Speak any of ~50 Whisper-supported languages. Optional one-click offline translation to English — no API key needed. Full DE/EN UI switchable at runtime.",
     feat4_title: "History &amp; Snippet Expansion",
     feat4_desc: "The last 20 dictations are saved in the tray — click to re-insert. Define your own shortcuts like /sig or /adr that expand to full text before insertion.",
-    feat5_title: "Claude-Powered Intelligence",
-    feat5_desc: "Business and Rage modes use Anthropic's Claude for nuanced language transformation — not just autocorrect, real intelligence.",
+    feat5_title: "Multi-Provider LLM",
+    feat5_desc: "Business and Rage modes run on the LLM you choose: Anthropic Claude, any OpenAI-compatible API (OpenAI, Groq, OpenRouter, LM Studio …) or local Ollama models. Per-mode override — cloud where it matters, local where it counts.",
     feat6_title: "GPU Acceleration &amp; Model Choice",
     feat6_desc: "Choose your Whisper model (tiny → large-v3-turbo). GPU mode auto-detects CUDA — or force CPU/GPU via config. Speed vs. accuracy, your call.",
     feat7_title: "Portable, winget &amp; Scoop",
@@ -618,7 +618,7 @@ const T = {
     dl_version: "Latest release · MIT License · Free forever",
     req1: "Windows 10 or Windows 11",
     req2: "Microphone — any USB or built-in mic works",
-    req3: "Optional: Claude API key (for Business &amp; Rage modes)",
+    req3: "Optional for Business &amp; Rage: Anthropic, OpenAI-compatible API, or local Ollama",
     install_label: "Install via",
     dl_btn: "Download Latest Release", src_btn: "View Source",
     footer_copy: "© 2026 RTF22 · MIT License · Free &amp; Open Source",
@@ -666,8 +666,8 @@ const T = {
     feat3_desc: "In einer der ~50 von Whisper unterstützten Sprachen sprechen. Optionale Offline-Übersetzung ins Englische per Klick — kein API-Key nötig. DE/EN-UI jederzeit umschaltbar.",
     feat4_title: "Verlauf &amp; Snippet-Expansion",
     feat4_desc: "Die letzten 20 Diktate bleiben im Tray gespeichert — Klick fügt sie erneut ein. Eigene Kürzel wie /sig oder /adr werden vor dem Einfügen automatisch expandiert.",
-    feat5_title: "Claude-gestützte KI",
-    feat5_desc: "Business- und Rage-Modus nutzen Anthropics Claude für nuancierte Sprachtransformation — keine einfache Autokorrektur, echte Intelligenz.",
+    feat5_title: "Multi-Provider-LLM",
+    feat5_desc: "Business- und Rage-Modus laufen auf dem LLM deiner Wahl: Anthropic Claude, beliebige OpenAI-kompatible API (OpenAI, Groq, OpenRouter, LM Studio …) oder lokale Ollama-Modelle. Pro Modus überschreibbar — Cloud wo's zählt, lokal wo's drauf ankommt.",
     feat6_title: "GPU-Beschleunigung &amp; Modellauswahl",
     feat6_desc: "Whisper-Modell frei wählbar (tiny → large-v3-turbo). GPU-Modus erkennt CUDA automatisch — oder CPU/GPU per Konfig erzwingen. Geschwindigkeit vs. Genauigkeit, selbst entscheiden.",
     feat7_title: "Portabel, winget &amp; Scoop",
@@ -680,7 +680,7 @@ const T = {
     dl_version: "Neueste Version · MIT-Lizenz · Kostenlos für immer",
     req1: "Windows 10 oder Windows 11",
     req2: "Mikrofon — USB oder eingebaut, alles funktioniert",
-    req3: "Optional: Claude API-Key (nur für Business- &amp; Rage-Modus)",
+    req3: "Optional für Business &amp; Rage: Anthropic, OpenAI-kompatible API oder lokales Ollama",
     install_label: "Installieren via",
     dl_btn: "Neueste Version herunterladen", src_btn: "Quellcode ansehen",
     footer_copy: "© 2026 RTF22 · MIT-Lizenz · Kostenlos &amp; Open Source",
